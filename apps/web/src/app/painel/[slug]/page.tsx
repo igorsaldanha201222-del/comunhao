@@ -13,7 +13,7 @@ export default async function Dashboard({ params }: PageProps<"/painel/[slug]">)
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
   const now = new Date().toISOString();
 
-  const [people, members, visitors, prayers, nextEvents, donations, alerts, schedules, maint] = await Promise.all([
+  const [people, members, visitors, prayers, nextEvents, donations, alerts, schedules, maint, journeys] = await Promise.all([
     supabase.from("people").select("*", { count: "exact", head: true }).eq("church_id", id),
     supabase.from("people").select("*", { count: "exact", head: true }).eq("church_id", id).eq("status", "membro"),
     supabase.from("people").select("*", { count: "exact", head: true }).eq("church_id", id).eq("status", "visitante").gte("created_at", monthStart),
@@ -25,7 +25,10 @@ export default async function Dashboard({ params }: PageProps<"/painel/[slug]">)
     supabase.from("solar_alerts").select("id, message, solar_devices(name)").eq("church_id", id).is("resolved_at", null).limit(5),
     supabase.from("schedules").select("id, title, starts_at, ministry_id, ministries(name)").eq("church_id", id).gte("starts_at", now).order("starts_at").limit(5),
     supabase.from("maintenance_requests").select("priority").eq("church_id", id).in("status", ["aberta", "em_andamento", "aguardando"]),
+    supabase.from("member_journeys").select("step").eq("church_id", id).eq("gave_up", false).neq("step", "concluido"),
   ]);
+  const jTalk = (journeys.data ?? []).filter((j) => j.step === "conversa").length;
+  const jAll = journeys.data?.length ?? 0;
   const maintOpen = maint.data?.length ?? 0;
   const maintUrgent = (maint.data ?? []).filter((r) => r.priority === "urgente" || r.priority === "alta").length;
 
@@ -41,6 +44,12 @@ export default async function Dashboard({ params }: PageProps<"/painel/[slug]">)
         <Stat label="Orações pendentes" value={prayers.count ?? 0} />
         {isAdmin && <Stat label="Doações no mês" value={brl(monthTotal)} />}
       </div>
+
+      {jAll > 0 && (
+        <Link href={`${base}/membresia`} className="mt-6 block rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+          <strong>Quero ser membro:</strong> {jAll} pessoa(s) na trilha{jTalk ? `, ${jTalk} esperando a conversa com o pastor` : ""}. Acompanhar →
+        </Link>
+      )}
 
       {maintOpen > 0 && (
         <Link href={`${base}/manutencao`} className="mt-6 block rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">

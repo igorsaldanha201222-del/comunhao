@@ -27,6 +27,7 @@ function RootNavigator() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="evento/[id]" options={{ headerShown: true, title: 'Evento', headerBackTitle: 'Voltar' }} />
         <Stack.Screen name="escala/[id]" options={{ headerShown: true, title: 'Escala', headerBackTitle: 'Voltar' }} />
+        <Stack.Screen name="membro/index" options={{ headerShown: true, title: 'Quero ser membro', headerBackTitle: 'Voltar' }} />
         <Stack.Screen name="kids/index" options={{ headerShown: true, title: 'Kids', headerBackTitle: 'Voltar' }} />
         <Stack.Screen name="kids/novo" options={{ headerShown: true, title: 'Cadastrar filho', headerBackTitle: 'Voltar', presentation: 'modal' }} />
         <Stack.Screen name="manutencao/index" options={{ headerShown: true, title: 'Manutenção', headerBackTitle: 'Voltar' }} />

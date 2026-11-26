@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { brl, date, dateTime, youtubeId } from "@/lib/format";
 import { BRAND } from "@/lib/brand";
+import { STEPS } from "@/lib/journey";
 import { CopyPix } from "./copy-pix";
 
 async function load(slug: string) {
@@ -80,6 +81,9 @@ export default async function ChurchSite({ params }: PageProps<"/i/[slug]">) {
           <p className={`mt-3 text-xl font-bold ${church.hero_url ? "text-zinc-900 [text-shadow:1px_1px_3px_rgba(255,255,255,0.8)]" : "text-white/90"}`}>
             {church.tagline ?? "Um lugar de fé, esperança e amor."}
           </p>
+          <Link href={`/i/${slug}/membro`} className="mt-6 inline-block rounded-full bg-brand px-7 py-3 text-lg font-bold text-white shadow-lg transition hover:scale-105 hover:bg-accent">
+            🙋 Quero ser membro
+          </Link>
         </div>
       </section>
 
@@ -97,6 +101,24 @@ export default async function ChurchSite({ params }: PageProps<"/i/[slug]">) {
         <h2 className={title}>Quem Somos</h2>
         <div className="mx-auto mt-10 max-w-3xl rounded-xl bg-white p-8 text-center shadow-[0_5px_20px_rgba(0,0,0,0.05)]">
           <p className="whitespace-pre-wrap text-lg leading-relaxed text-zinc-600">{church.about ?? "Informações institucionais em atualização."}</p>
+        </div>
+      </section>
+
+      <section id="membro" className="scroll-mt-24 px-5 pb-20">
+        <h2 className={title}>Quero ser membro</h2>
+        <p className="mx-auto mt-6 max-w-2xl text-center text-zinc-600">Uma trilha simples para você fazer parte da família — acompanhe cada passo pelo site ou pelo app.</p>
+        <ol className="mx-auto mt-10 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {STEPS.map((s, i) => (
+            <li key={s.key} className="rounded-xl bg-white p-6 text-center shadow-[0_5px_20px_rgba(0,0,0,0.05)]">
+              <span className="text-4xl">{s.icon}</span>
+              <p className="mt-2 text-xs font-bold uppercase tracking-wide text-brand">Etapa {i + 1}</p>
+              <p className="mt-1 font-bold">{s.title}</p>
+              <p className="mt-1 text-sm text-zinc-600">{s.text}</p>
+            </li>
+          ))}
+        </ol>
+        <div className="mt-8 text-center">
+          <Link href={`/i/${slug}/membro`} className="inline-block rounded-full bg-brand px-7 py-3 font-bold text-white transition hover:bg-accent">Começar minha jornada →</Link>
         </div>
       </section>
 

@@ -53,18 +53,20 @@ export async function signupMember(_: ActionResult, f: FormData): Promise<Action
   const email = str(f, "email");
   const password = str(f, "password");
   if (!name || !email || password.length < 8) return { error: "Preencha nome, e-mail e senha (mín. 8 caracteres)." };
+  // Volta para a página de onde veio (convite ou trilha "Quero ser membro"), sempre dentro do site da igreja.
+  const back = str(f, "next").startsWith(`/i/${slug}/`) ? str(f, "next") : `/i/${slug}/participar`;
   const supabase = await createClient();
   const origin = (await headers()).get("origin") ?? "";
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { full_name: name, phone: str(f, "phone") }, emailRedirectTo: `${origin}/auth/callback?next=/i/${slug}/participar` },
+    options: { data: { full_name: name, phone: str(f, "phone") }, emailRedirectTo: `${origin}/auth/callback?next=${back}` },
   });
   if (error) return { error: error.message.includes("registered") ? "Esse e-mail já tem conta. Use \"Já tenho conta\" abaixo." : error.message };
   if (!data.session) return { ok: "Enviamos um link de confirmação para o seu e-mail. Abra o link e você volta para esta página." };
   const { error: jErr } = await supabase.rpc("join_church", { p_slug: slug });
   if (jErr) return { error: jErr.message };
-  redirect(`/i/${slug}/participar`);
+  redirect(back);
 }
 
 export async function joinChurch(f: FormData) {
