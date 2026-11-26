@@ -21,6 +21,9 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
       <p className="mt-6 text-sm text-zinc-600">
         Ainda não tem conta? <Link href="/cadastro" className="font-medium underline">Cadastre sua igreja</Link>
       </p>
+      <p className="mt-2 text-sm text-zinc-500">
+        Faz parte da equipe de uma igreja? Peça ao pastor o link de convite.
+      </p>
     </main>
   );
 }

@@ -11,7 +11,7 @@ export async function login(_: ActionResult, f: FormData): Promise<ActionResult>
   const { error } = await supabase.auth.signInWithPassword({ email: str(f, "email"), password: str(f, "password") });
   if (error) return { error: "E-mail ou senha inválidos." };
   const next = str(f, "next");
-  redirect(next.startsWith("/painel") ? next : "/painel");
+  redirect(/^\/(painel|i\/)/.test(next) ? next : "/painel");
 }
 
 export async function signupChurch(_: ActionResult, f: FormData): Promise<ActionResult> {
@@ -44,6 +44,34 @@ export async function signupChurch(_: ActionResult, f: FormData): Promise<Action
   const { error: cErr } = await supabase.rpc("create_church", { p_name: churchName, p_slug: slug });
   if (cErr) return { error: "Conta criada, mas não foi possível criar a igreja: " + cErr.message };
   redirect(`/painel/${slug}`);
+}
+
+/** Convite da igreja: a pessoa cria a conta e já entra como membro; o pastor libera o acesso depois. */
+export async function signupMember(_: ActionResult, f: FormData): Promise<ActionResult> {
+  const slug = str(f, "slug");
+  const name = str(f, "full_name");
+  const email = str(f, "email");
+  const password = str(f, "password");
+  if (!name || !email || password.length < 8) return { error: "Preencha nome, e-mail e senha (mín. 8 caracteres)." };
+  const supabase = await createClient();
+  const origin = (await headers()).get("origin") ?? "";
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { data: { full_name: name, phone: str(f, "phone") }, emailRedirectTo: `${origin}/auth/callback?next=/i/${slug}/participar` },
+  });
+  if (error) return { error: error.message.includes("registered") ? "Esse e-mail já tem conta. Use \"Já tenho conta\" abaixo." : error.message };
+  if (!data.session) return { ok: "Enviamos um link de confirmação para o seu e-mail. Abra o link e você volta para esta página." };
+  const { error: jErr } = await supabase.rpc("join_church", { p_slug: slug });
+  if (jErr) return { error: jErr.message };
+  redirect(`/i/${slug}/participar`);
+}
+
+export async function joinChurch(f: FormData) {
+  const slug = str(f, "slug");
+  const supabase = await createClient();
+  await supabase.rpc("join_church", { p_slug: slug });
+  redirect(`/i/${slug}/participar`);
 }
 
 export async function createChurch(_: ActionResult, f: FormData): Promise<ActionResult> {

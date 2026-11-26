@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { requireStaff } from "@/lib/auth";
 import { STATUS_LABEL } from "@/lib/format";
 import { ActionForm, Submit } from "@/components/form";
@@ -9,6 +10,8 @@ export const metadata = { title: "Configurações" };
 export default async function ConfiguracoesPage({ params }: PageProps<"/painel/[slug]/configuracoes">) {
   const { slug } = await params;
   const { church, supabase, isAdmin, user } = await requireStaff(slug);
+  const h = await headers();
+  const origin = `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host")}`;
 
   const [{ data: team }, { data: funds }] = await Promise.all([
     supabase.from("memberships").select("user_id, role, maint_request, maint_manage").eq("church_id", church.id),
@@ -50,6 +53,11 @@ export default async function ConfiguracoesPage({ params }: PageProps<"/painel/[
               Administrador: tudo. Líder: painel sem financeiro. Tesoureiro: só o financeiro. Membro: só o app.
               <br />Manutenção (qualquer papel): <strong>abre chamados</strong> com foto, ou <strong>cuida</strong> do quadro de manutenção.
             </p>
+            <div className="mt-3 rounded-lg bg-zinc-50 p-3 text-xs">
+              <p className="font-medium text-zinc-700">Convide a equipe: mande este link pelo WhatsApp</p>
+              <p className="mt-1 break-all font-mono text-zinc-600">{origin}/i/{slug}/participar</p>
+              <p className="mt-1 text-zinc-500">A pessoa cria a conta, aparece aqui como Membro e você escolhe o que ela acessa.</p>
+            </div>
             <ul className="mt-3 divide-y divide-zinc-100 text-sm">
               {sorted.map((t) => {
                 const p = byUser.get(t.user_id);

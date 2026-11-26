@@ -10,3 +10,4 @@ firmware/**/config.h
 dist/
 *.tsbuildinfo
 supabase/.temp/
+.vercel/

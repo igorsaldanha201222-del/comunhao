@@ -89,6 +89,8 @@ export default async function Dashboard({ params }: PageProps<"/painel/[slug]">)
         <p className="mt-2 text-zinc-600">
           No aplicativo, os membros entram na igreja com o código <code className="rounded bg-zinc-100 px-1.5 py-0.5 font-mono">{slug}</code>.
           O site público da igreja fica em <Link className="underline" href={`/i/${slug}`}>/i/{slug}</Link>.
+          Para a equipe (líderes, tesoureiro, manutenção) se cadastrar pelo computador, mande o link{" "}
+          <Link className="underline" href={`/i/${slug}/participar`}>/i/{slug}/participar</Link> e depois libere o acesso em Configurações.
         </p>
       </section>
     </>

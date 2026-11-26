@@ -18,6 +18,9 @@ export default async function PainelHome({ searchParams }: PageProps<"/painel">)
   const staff = (data ?? []).filter((m) => m.role !== "member" || m.maint_request || m.maint_manage) as unknown as {
     role: string; churches: { slug: string; name: string };
   }[];
+  const waiting = (data ?? []).filter((m) => m.role === "member" && !m.maint_request && !m.maint_manage) as unknown as {
+    churches: { slug: string; name: string };
+  }[];
   const { erro } = await searchParams;
 
   if (staff.length === 1 && !erro) redirect(`/painel/${staff[0].churches.slug}`);
@@ -32,6 +35,12 @@ export default async function PainelHome({ searchParams }: PageProps<"/painel">)
         <p className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
           Você não tem acesso ao painel dessa igreja. Peça a um administrador para te dar o papel de líder.
         </p>
+      )}
+      {waiting.length > 0 && (
+        <div className="mb-6 rounded-lg bg-sky-50 p-4 text-sm text-sky-900">
+          Você já faz parte de <strong>{waiting.map((w) => w.churches.name).join(", ")}</strong>. Assim que o pastor liberar seu
+          acesso (Configurações → Equipe), a igreja aparece aqui.
+        </div>
       )}
       {staff.length > 0 && (
         <>
