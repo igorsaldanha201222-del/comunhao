@@ -1,0 +1,12 @@
+node_modules/
+.env
+.env.local
+.env*.local
+firmware/**/config.h
+.DS_Store
+.claude/
+.next/
+.expo/
+dist/
+*.tsbuildinfo
+supabase/.temp/
