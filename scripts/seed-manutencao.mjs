@@ -7,7 +7,7 @@ const SB_URL = process.env.SUPABASE_URL ?? "http://127.0.0.1:54321";
 const ANON = process.env.SUPABASE_ANON_KEY;
 const SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!ANON || !SERVICE) throw new Error("Defina SUPABASE_ANON_KEY e SUPABASE_SERVICE_ROLE_KEY.");
-if (!SB_URL.includes("127.0.0.1") && !SB_URL.includes("localhost")) throw new Error("Só no Supabase local.");
+if (!process.env.ALLOW_REMOTE && !SB_URL.includes("127.0.0.1") && !SB_URL.includes("localhost")) throw new Error("Só no Supabase local.");
 const admin = createClient(SB_URL, SERVICE, { auth: { persistSession: false } });
 const ok = ({ data, error }) => { if (error) throw error; return data; };
 async function as(email) {
