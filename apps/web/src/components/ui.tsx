@@ -27,9 +27,9 @@ export function Empty({ children }: { children: ReactNode }) {
 
 export function Stat({ label, value, hint }: { label: string; value: ReactNode; hint?: string }) {
   return (
-    <div className="card">
-      <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">{label}</p>
-      <p className="mt-2 text-2xl font-semibold tabular-nums">{value}</p>
+    <div className="card p-4 sm:p-5">
+      <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500 sm:text-xs">{label}</p>
+      <p className="mt-1.5 text-lg font-semibold tabular-nums sm:mt-2 sm:text-2xl">{value}</p>
       {hint && <p className="mt-1 text-xs text-zinc-500">{hint}</p>}
     </div>
   );

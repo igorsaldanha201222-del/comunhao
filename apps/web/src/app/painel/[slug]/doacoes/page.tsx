@@ -31,7 +31,7 @@ export default async function DoacoesPage({ params, searchParams }: PageProps<"/
     <>
       <PageHeader title="Doações e recebimentos" subtitle="Pix, cartão e boleto"
         actions={<form><input type="month" name="mes" defaultValue={month} className="input" /><button className="btn-ghost ml-2">Ver</button></form>} />
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <Stat label="Recebido no mês" value={brl(total)} hint={`${paid.length} pagamento(s)`} />
         {[...byFund].map(([k, v]) => <Stat key={k} label={k} value={brl(v)} />)}
       </div>

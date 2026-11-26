@@ -53,7 +53,7 @@ export default async function SolarPage({ params }: PageProps<"/painel/[slug]/so
   return (
     <>
       <PageHeader title="Energia solar" subtitle="Geração, falhas e comunicação do sistema fotovoltaico" />
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <Stat label="Potência agora" value={fmt(nowKw, "kW")} />
         <Stat label="Energia hoje" value={fmt(todayKwh, "kWh")} />
         <Stat label="Últimos 7 dias" value={fmt(weekKwh, "kWh")} hint={`≈ ${fmt(weekKwh * 0.9, "reais")} economizados (R$ 0,90/kWh)`} />

@@ -83,7 +83,7 @@ export default async function FinanceiroPage({ params, searchParams }: PageProps
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <Stat label="Entradas no mês" value={<span className="text-emerald-700">{brl(inc)}</span>} />
         <Stat label="Saídas no mês" value={<span className="text-red-700">{brl(out)}</span>} />
         <Stat label="Resultado do mês" value={brl(inc - out)} hint={inc - out >= 0 ? "superávit" : "déficit"} />

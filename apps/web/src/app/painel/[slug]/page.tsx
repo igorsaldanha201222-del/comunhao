@@ -35,7 +35,7 @@ export default async function Dashboard({ params }: PageProps<"/painel/[slug]">)
   return (
     <>
       <PageHeader title={`Olá, ${church.name}`} subtitle="Resumo da igreja" />
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <Stat label="Pessoas" value={people.count ?? 0} hint={`${members.count ?? 0} membros`} />
         <Stat label="Visitantes no mês" value={visitors.count ?? 0} />
         <Stat label="Orações pendentes" value={prayers.count ?? 0} />
