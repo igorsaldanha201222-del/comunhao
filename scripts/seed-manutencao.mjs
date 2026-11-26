@@ -16,7 +16,7 @@ async function as(email) {
   return c;
 }
 
-const church = ok(await admin.from("churches").select("id").eq("slug", "esperanca").single());
+const church = ok(await admin.from("churches").select("id").eq("slug", "gileade").single());
 const cid = church.id;
 const users = ok(await admin.auth.admin.listUsers()).users;
 const uid = (e) => users.find((u) => u.email === e).id;

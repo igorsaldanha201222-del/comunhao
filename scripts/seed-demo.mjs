@@ -28,20 +28,20 @@ async function as(email) {
 }
 const ok = ({ data, error }) => { if (error) throw error; return data; };
 
-const pastorId = await user("pastor@demo.com", "Pr. João Almeida");
+const pastorId = await user("pastor@demo.com", "Pr. Marcos Sérgio Pinheiro de Oliveira");
 const tesId = await user("tesoureiro@demo.com", "Carla Souza");
 const memId = await user("membro@demo.com", "Maria Oliveira");
 const p = await as("pastor@demo.com");
 
-let church = ok(await admin.from("churches").select("*").eq("slug", "esperanca").maybeSingle());
-if (!church) church = ok(await p.rpc("create_church", { p_name: "Igreja Esperança Viva", p_slug: "esperanca" }));
+let church = ok(await admin.from("churches").select("*").eq("slug", "gileade").maybeSingle());
+if (!church) church = ok(await p.rpc("create_church", { p_name: "Gileade Cidade dos Funcionários", p_slug: "gileade" }));
 const cid = church.id;
 ok(await p.from("churches").update({
-  primary_color: "#0f766e", about: "Uma família que ama a Deus e serve a cidade.", address: "Rua das Flores, 120",
-  city: "Fortaleza", state: "CE", phone: "(85) 99999-0000", instagram: "@esperancaviva",
+  primary_color: "#0f766e", about: "Uma família que ama a Deus e serve a cidade.", address: "Cidade dos Funcionários",
+  city: "Fortaleza", state: "CE", phone: "(85) 99999-0000", instagram: "@gileadecf",
 }).eq("id", cid));
 
-for (const [email] of [["tesoureiro@demo.com"], ["membro@demo.com"]]) ok(await (await as(email)).rpc("join_church", { p_slug: "esperanca" }));
+for (const [email] of [["tesoureiro@demo.com"], ["membro@demo.com"]]) ok(await (await as(email)).rpc("join_church", { p_slug: "gileade" }));
 ok(await admin.from("memberships").update({ role: "treasurer" }).eq("church_id", cid).eq("user_id", tesId));
 ok(await admin.from("people").update({ status: "membro" }).eq("church_id", cid).eq("user_id", memId));
 
@@ -99,14 +99,14 @@ if (!sched) {
 // Comunicação e eventos
 if (!ok(await p.from("sermons").select("id").eq("church_id", cid)).length) {
   ok(await p.from("sermons").insert([
-    { church_id: cid, title: "A fé que move montanhas", preacher: "Pr. João Almeida", series: "Fé em ação", video_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", preached_at: "2026-11-23" },
-    { church_id: cid, title: "Servir com alegria", preacher: "Pr. João Almeida", series: "Fé em ação", video_url: null, preached_at: "2026-11-16" },
+    { church_id: cid, title: "A fé que move montanhas", preacher: "Pr. Marcos Sérgio Pinheiro de Oliveira", series: "Fé em ação", video_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", preached_at: "2026-11-23" },
+    { church_id: cid, title: "Servir com alegria", preacher: "Pr. Marcos Sérgio Pinheiro de Oliveira", series: "Fé em ação", video_url: null, preached_at: "2026-11-16" },
   ]));
   ok(await p.from("events").insert([
     { church_id: cid, title: "Retiro de Jovens", description: "Três dias de comunhão, louvor e palavra.", location: "Sítio Bela Vista", starts_at: "2027-01-16T08:00:00-03:00", capacity: 80, price_cents: 18000, published: true },
     { church_id: cid, title: "Culto de Natal", description: "Cantata e ceia com toda a família.", location: "Templo sede", starts_at: "2026-12-24T19:00:00-03:00", price_cents: 0, published: true },
   ]));
-  ok(await p.from("prayer_requests").insert({ church_id: cid, user_id: pastorId, author_name: "Pr. João Almeida", category: "Família", body: "Pela saúde da irmã Ana, que fará cirurgia na próxima semana." }));
+  ok(await p.from("prayer_requests").insert({ church_id: cid, user_id: pastorId, author_name: "Pr. Marcos Sérgio Pinheiro de Oliveira", category: "Família", body: "Pela saúde da irmã Ana, que fará cirurgia na próxima semana." }));
 }
 
 // Financeiro (como tesoureira)
@@ -150,7 +150,7 @@ if (!ok(await p.from("solar_devices").select("id").eq("church_id", cid)).length)
 }
 
 console.log(`
-Pronto! Igreja de demonstração "Igreja Esperança Viva" (código: esperanca)
+Pronto! Igreja de demonstração "Gileade Cidade dos Funcionários" (código: gileade)
   Pastor (administrador): pastor@demo.com     / ${PASS}
   Tesoureira:             tesoureiro@demo.com / ${PASS}
   Membro (líder louvor):  membro@demo.com     / ${PASS}`);
