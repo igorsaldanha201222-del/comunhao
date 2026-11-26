@@ -14,11 +14,19 @@ export default async function PainelHome({ searchParams }: PageProps<"/painel">)
   const user = await requireUser();
   const supabase = await createClient();
   const { data } = await supabase
-    .from("memberships").select("role, maint_request, maint_manage, churches(slug, name)").eq("user_id", user.id);
-  const staff = (data ?? []).filter((m) => m.role !== "member" || m.maint_request || m.maint_manage) as unknown as {
+    .from("memberships").select("role, maint_request, maint_manage, churches(id, slug, name)").eq("user_id", user.id);
+  // Membro comum que é voluntário do Kids também entra no painel.
+  const kidsOk = new Set<string>();
+  await Promise.all((data ?? []).filter((m) => m.role === "member" && !m.maint_request && !m.maint_manage).map(async (m) => {
+    const c = m.churches as unknown as { id: string; slug: string };
+    const { data: ok } = await supabase.rpc("kids_can_manage", { p_church: c.id });
+    if (ok) kidsOk.add(c.slug);
+  }));
+  const isKids = (m: { churches: unknown }) => kidsOk.has((m.churches as { slug: string }).slug);
+  const staff = (data ?? []).filter((m) => m.role !== "member" || m.maint_request || m.maint_manage || isKids(m)) as unknown as {
     role: string; churches: { slug: string; name: string };
   }[];
-  const waiting = (data ?? []).filter((m) => m.role === "member" && !m.maint_request && !m.maint_manage) as unknown as {
+  const waiting = (data ?? []).filter((m) => m.role === "member" && !m.maint_request && !m.maint_manage && !isKids(m)) as unknown as {
     churches: { slug: string; name: string };
   }[];
   const { erro } = await searchParams;
@@ -50,7 +58,7 @@ export default async function PainelHome({ searchParams }: PageProps<"/painel">)
               <li key={m.churches.slug}>
                 <Link href={`/painel/${m.churches.slug}`} className="card flex justify-between hover:border-zinc-400">
                   <span className="font-medium">{m.churches.name}</span>
-                  <span className="text-sm text-zinc-500">{m.role === "member" ? "Manutenção" : STATUS_LABEL[m.role]}</span>
+                  <span className="text-sm text-zinc-500">{m.role === "member" ? "Voluntário" : STATUS_LABEL[m.role]}</span>
                 </Link>
               </li>
             ))}

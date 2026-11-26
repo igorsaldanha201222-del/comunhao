@@ -13,7 +13,7 @@ export function MobileNav({ items, base, title, logo, footer }: {
   const current = items.find(([href]) => (href === "" ? path === base : path.startsWith(base + href)))?.[1];
 
   return (
-    <div className="sticky top-0 z-40 border-b border-zinc-200 bg-white md:hidden">
+    <div className="sticky top-0 z-40 border-b border-zinc-200 bg-white md:hidden print:hidden">
       <div className="flex items-center justify-between gap-3 px-4 py-3">
         <div className="flex min-w-0 items-center gap-2">
           {logo}

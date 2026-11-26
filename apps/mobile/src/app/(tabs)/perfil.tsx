@@ -41,6 +41,11 @@ export default function Perfil() {
 
   return (
     <Screen title="Perfil" subtitle={`${name} · ${church.name}`} color={color}>
+      <Card>
+        <H2>🧸 Kids</H2>
+        <Muted>Cadastre seus filhos, faça o check-in pelo celular e veja as aulas e atividades.</Muted>
+        <Button title="Abrir Kids" color={color} onPress={() => router.push('/kids')} />
+      </Card>
       {maint.request && (
         <Card>
           <H2>🔧 Manutenção</H2>

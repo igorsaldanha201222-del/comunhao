@@ -18,6 +18,7 @@ const NAV: [string, string, string][] = [
   ["/oracoes", "Pedidos de oração", "S"],
   ["/financeiro", "Financeiro", "F"],
   ["/doacoes", "Doações online", "F"],
+  ["/kids", "Kids", "K"],
   ["/manutencao", "Manutenção", "M"],
   ["/solar", "Energia solar", "S"],
   ["/configuracoes", "Configurações", "S"],
@@ -25,13 +26,13 @@ const NAV: [string, string, string][] = [
 
 export default async function PainelLayout({ children, params }: LayoutProps<"/painel/[slug]">) {
   const { slug } = await params;
-  const { church, user, isStaff, canFinance, canMaintRequest } = await requireStaff(slug);
+  const { church, user, isStaff, canFinance, canMaintRequest, canKids } = await requireStaff(slug);
   const nav = NAV.filter(([, , who]) =>
-    (who.includes("S") && isStaff) || (who.includes("F") && canFinance) || (who.includes("M") && canMaintRequest));
+    (who.includes("S") && isStaff) || (who.includes("F") && canFinance) || (who.includes("M") && canMaintRequest) || (who.includes("K") && canKids));
   const base = `/painel/${slug}`;
   return (
     <div className="flex min-h-screen overflow-x-clip" style={{ ["--brand" as string]: church.primary_color }}>
-      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col overflow-y-auto border-r border-zinc-200 bg-white md:flex">
+      <aside className="sticky top-0 hidden print:!hidden h-screen w-60 shrink-0 flex-col overflow-y-auto border-r border-zinc-200 bg-white md:flex">
         <div className="border-b border-zinc-200 p-4">
           <div className="flex items-center gap-2">
             {church.logo_url ? (

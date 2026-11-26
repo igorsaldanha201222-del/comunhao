@@ -54,11 +54,12 @@ export const requireStaff = cache(async (slug: string) => {
   const isAdmin = role === "owner" || role === "admin";
   const canMaintManage = isAdmin || !!m?.maint_manage;
   const canMaintRequest = canMaintManage || !!m?.maint_request;
-  if (!role || (role === "member" && !canMaintRequest)) redirect("/painel?erro=sem-acesso");
+  const { data: canKids } = role ? await supabase.rpc("kids_can_manage", { p_church: church.id }) : { data: false };
+  if (!role || (role === "member" && !canMaintRequest && !canKids)) redirect("/painel?erro=sem-acesso");
   return {
     user, church, role, supabase, isAdmin,
     canFinance: isAdmin || role === "treasurer",
     isStaff: role === "owner" || role === "admin" || role === "leader",
-    canMaintManage, canMaintRequest,
+    canMaintManage, canMaintRequest, canKids: !!canKids,
   };
 });
