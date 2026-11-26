@@ -10,6 +10,7 @@ import { NavLink } from "./nav-link";
 const NAV: [string, string, string][] = [
   ["", "Início", "SF"],
   ["/pessoas", "Pessoas", "S"],
+  ["/engajamento", "Engajamento", "S"],
   ["/membresia", "Quero ser membro", "S"],
   ["/ministerios", "Ministérios", "S"],
   ["/eventos", "Eventos", "S"],

@@ -36,6 +36,8 @@ export default async function FinanceiroPage({ params, searchParams }: PageProps
   if (tipo === "entrada" || tipo === "saida") list = list.eq("type", tipo);
   if (q) list = list.or(`description.ilike.%${q}%,counterparty.ilike.%${q}%,document_number.ilike.%${q}%`);
 
+  const { data: peopleRows } = await supabase.rpc("finance_people", { p_church: church.id });
+  const people = (peopleRows ?? []).map((p: { id: string; full_name: string }) => ({ id: p.id, name: p.full_name }));
   const [{ data: rows }, { data: categories }, { data: accounts }, { data: allPaid }, { data: overdue }] = await Promise.all([
     list,
     supabase.from("finance_categories").select("id, name, type").eq("church_id", church.id).eq("active", true).order("name"),
@@ -195,7 +197,7 @@ export default async function FinanceiroPage({ params, searchParams }: PageProps
         <aside className="space-y-6">
           <section className="card">
             <h2 className="mb-4 font-semibold">Novo lançamento</h2>
-            <EntryForm slug={slug} categories={categories ?? []} accounts={accounts ?? []} />
+            <EntryForm slug={slug} categories={categories ?? []} accounts={accounts ?? []} people={people} />
           </section>
           <section className="card space-y-4">
             <h2 className="font-semibold">Categorias e contas</h2>

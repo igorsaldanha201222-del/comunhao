@@ -9,13 +9,13 @@ export type Entry = {
   id: string; type: string; status: string; entry_date: string; due_date: string | null; amount_cents: number;
   description: string; category_id: string | null; account_id: string | null; counterparty: string | null;
   counterparty_doc: string | null; document_type: string | null; document_number: string | null;
-  payment_method: string | null; notes: string | null; source: string; attachment_path: string | null;
+  payment_method: string | null; notes: string | null; source: string; attachment_path: string | null; person_id?: string | null;
 };
 
 const today = () => new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
 
 /** Formulário de lançamento: muda rótulos e categorias conforme entrada/saída. */
-export function EntryForm({ slug, categories, accounts, entry }: { slug: string; categories: Opt[]; accounts: Opt[]; entry?: Entry }) {
+export function EntryForm({ slug, categories, accounts, people = [], entry }: { slug: string; categories: Opt[]; accounts: Opt[]; people?: Opt[]; entry?: Entry }) {
   const [type, setType] = useState(entry?.type ?? "saida");
   const [status, setStatus] = useState(entry?.status ?? "pago");
   const online = entry?.source === "online";
@@ -67,6 +67,14 @@ export function EntryForm({ slug, categories, accounts, entry }: { slug: string;
           {accounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
         </select>
       </Field>
+      {!isOut && people.length > 0 && (
+        <Field label="Contribuinte (dízimo/oferta de um membro)" className="sm:col-span-2">
+          <select name="person_id" defaultValue={entry?.person_id ?? ""} className="input">
+            <option value="">— não identificado (oferta do culto, anônimo…)</option>
+            {people.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+        </Field>
+      )}
       <Field label={isOut ? "Fornecedor / favorecido" : "Recebido de"}>
         <input name="counterparty" defaultValue={entry?.counterparty ?? ""} className="input" />
       </Field>

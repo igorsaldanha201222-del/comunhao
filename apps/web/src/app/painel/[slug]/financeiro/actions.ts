@@ -55,6 +55,7 @@ export async function saveEntry(_: ActionResult, f: FormData): Promise<ActionRes
       document_number: s(f, "document_number"),
       payment_method: s(f, "payment_method"),
       notes: s(f, "notes"),
+      person_id: s(f, "type") === "entrada" ? s(f, "person_id") : null,
     };
     const doc = await uploadDoc(c, f.get("attachment"));
     if (doc) row.attachment_path = doc;

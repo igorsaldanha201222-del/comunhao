@@ -20,6 +20,8 @@ export default async function LancamentoPage({ params }: PageProps<"/painel/[slu
   const { data: entry } = await supabase.from("finance_entries").select("*").eq("id", id).eq("church_id", church.id).maybeSingle<Entry>();
   if (!entry) notFound();
 
+  const { data: peopleRows } = await supabase.rpc("finance_people", { p_church: church.id });
+  const people = (peopleRows ?? []).map((p: { id: string; full_name: string }) => ({ id: p.id, name: p.full_name }));
   const [{ data: categories }, { data: accounts }, { data: audit }, signed] = await Promise.all([
     supabase.from("finance_categories").select("id, name, type").eq("church_id", church.id).order("name"),
     supabase.from("finance_accounts").select("id, name").eq("church_id", church.id).order("name"),
@@ -58,7 +60,7 @@ export default async function LancamentoPage({ params }: PageProps<"/painel/[slu
       />
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="card">
-          <EntryForm slug={slug} categories={categories ?? []} accounts={accounts ?? []} entry={entry} />
+          <EntryForm slug={slug} categories={categories ?? []} accounts={accounts ?? []} people={people} entry={entry} />
         </section>
         <div className="space-y-6">
           <section className="card">
