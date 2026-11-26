@@ -19,6 +19,12 @@ export type Church = {
   instagram: string | null;
   youtube_channel: string | null;
   plan: string;
+  accent_color: string | null;
+  hero_url: string | null;
+  tagline: string | null;
+  service_times: string | null;
+  email: string | null;
+  pix_key: string | null;
 };
 
 export const getUser = cache(async () => {

@@ -99,7 +99,7 @@ if (!sched) {
 // Comunicação e eventos
 if (!ok(await p.from("sermons").select("id").eq("church_id", cid)).length) {
   ok(await p.from("sermons").insert([
-    { church_id: cid, title: "A fé que move montanhas", preacher: "Pr. Marcos Sérgio Pinheiro de Oliveira", series: "Fé em ação", video_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", preached_at: "2026-11-23" },
+    { church_id: cid, title: "A fé que move montanhas", preacher: "Pr. Marcos Sérgio Pinheiro de Oliveira", series: "Fé em ação", video_url: null, preached_at: "2026-11-23" },
     { church_id: cid, title: "Servir com alegria", preacher: "Pr. Marcos Sérgio Pinheiro de Oliveira", series: "Fé em ação", video_url: null, preached_at: "2026-11-16" },
   ]));
   ok(await p.from("events").insert([

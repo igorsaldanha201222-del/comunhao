@@ -307,17 +307,42 @@ export async function saveChurch(_: ActionResult, f: FormData): Promise<ActionRe
   if (!c.isAdmin) return { error: "Só administradores podem alterar a igreja." };
   try {
     const logo = await upload(c, f.get("logo"), "marca");
+    const hero = await upload(c, f.get("hero"), "marca");
     const row: Record<string, unknown> = {
-      name: req(f, "name"), primary_color: req(f, "primary_color"), about: s(f, "about"), address: s(f, "address"),
-      city: s(f, "city"), state: s(f, "state"), phone: s(f, "phone"), instagram: s(f, "instagram"),
-      youtube_channel: s(f, "youtube_channel"),
+      name: req(f, "name"), primary_color: req(f, "primary_color"), accent_color: s(f, "accent_color"),
+      tagline: s(f, "tagline"), about: s(f, "about"), service_times: s(f, "service_times"), address: s(f, "address"),
+      city: s(f, "city"), state: s(f, "state"), phone: s(f, "phone"), email: s(f, "email"), instagram: s(f, "instagram"),
+      youtube_channel: s(f, "youtube_channel"), pix_key: s(f, "pix_key"),
     };
     if (logo) row.logo_url = logo;
+    if (hero) row.hero_url = hero;
     const { error } = await c.supabase.from("churches").update(row).eq("id", c.church.id);
     return fail(error) ?? done(c, "/configuracoes", "Dados da igreja atualizados.");
   } catch (e) {
     return { error: (e as Error).message };
   }
+}
+
+export async function addLeader(_: ActionResult, f: FormData): Promise<ActionResult> {
+  const c = await ctx(f);
+  if (!c.isAdmin) return { error: "Só administradores." };
+  try {
+    const photo = await upload(c, f.get("photo"), "lideranca");
+    const { error } = await c.supabase.from("church_leaders").insert({
+      church_id: c.church.id, name: req(f, "name"), title: s(f, "title"), bio: s(f, "bio"), photo_url: photo,
+      position: Number(f.get("position") ?? 0) || 0,
+    });
+    return fail(error) ?? done(c, "/configuracoes", "Líder adicionado ao site.");
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
+}
+
+export async function removeLeader(f: FormData) {
+  const c = await ctx(f);
+  if (!c.isAdmin) return;
+  await c.supabase.from("church_leaders").delete().eq("id", req(f, "id")).eq("church_id", c.church.id);
+  revalidatePath(`/painel/${c.church.slug}/configuracoes`);
 }
 
 export async function setRole(_: ActionResult, f: FormData): Promise<ActionResult> {

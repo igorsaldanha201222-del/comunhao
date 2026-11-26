@@ -1,9 +1,9 @@
 import { headers } from "next/headers";
 import { requireStaff } from "@/lib/auth";
 import { STATUS_LABEL } from "@/lib/format";
-import { ActionForm, Submit } from "@/components/form";
+import { ActionForm, ConfirmButton, Submit } from "@/components/form";
 import { Badge, Field, PageHeader } from "@/components/ui";
-import { addFund, saveChurch, setRole } from "../actions";
+import { addFund, addLeader, removeLeader, saveChurch, setRole } from "../actions";
 
 export const metadata = { title: "Configurações" };
 
@@ -13,9 +13,10 @@ export default async function ConfiguracoesPage({ params }: PageProps<"/painel/[
   const h = await headers();
   const origin = `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host")}`;
 
-  const [{ data: team }, { data: funds }] = await Promise.all([
+  const [{ data: team }, { data: funds }, { data: leaders }] = await Promise.all([
     supabase.from("memberships").select("user_id, role, maint_request, maint_manage").eq("church_id", church.id),
     supabase.from("donation_funds").select("id, name, active").eq("church_id", church.id).order("position"),
+    supabase.from("church_leaders").select("id, name, title, photo_url, position").eq("church_id", church.id).order("position"),
   ]);
   const ids = (team ?? []).map((t) => t.user_id);
   const { data: people } = ids.length
@@ -34,13 +35,19 @@ export default async function ConfiguracoesPage({ params }: PageProps<"/painel/[
             <input type="hidden" name="slug" value={slug} />
             <Field label="Nome" className="sm:col-span-2"><input name="name" defaultValue={church.name} required className="input" /></Field>
             <Field label="Logo"><input name="logo" type="file" accept="image/*" className="text-sm" /></Field>
+            <Field label="Foto do topo do site"><input name="hero" type="file" accept="image/*" className="text-sm" /></Field>
             <Field label="Cor principal"><input name="primary_color" type="color" defaultValue={church.primary_color} className="h-10 w-20 rounded border border-zinc-300" /></Field>
-            <Field label="Sobre a igreja" className="sm:col-span-2"><textarea name="about" rows={3} defaultValue={church.about ?? ""} className="input" /></Field>
+            <Field label="Cor de destaque"><input name="accent_color" type="color" defaultValue={church.accent_color ?? "#f06500"} className="h-10 w-20 rounded border border-zinc-300" /></Field>
+            <Field label="Frase de boas-vindas" className="sm:col-span-2"><input name="tagline" maxLength={160} defaultValue={church.tagline ?? ""} placeholder="Um lugar de fé, esperança e amor." className="input" /></Field>
+            <Field label="Sobre a igreja (Quem Somos)" className="sm:col-span-2"><textarea name="about" rows={3} defaultValue={church.about ?? ""} className="input" /></Field>
+            <Field label="Dias e horários dos cultos" className="sm:col-span-2"><textarea name="service_times" rows={3} defaultValue={church.service_times ?? ""} placeholder={"Domingo 18h - Culto da Família\nQuarta 19h30 - Culto de Ensino"} className="input" /></Field>
             <Field label="Endereço" className="sm:col-span-2"><input name="address" defaultValue={church.address ?? ""} className="input" /></Field>
             <Field label="Cidade"><input name="city" defaultValue={church.city ?? ""} className="input" /></Field>
             <Field label="UF"><input name="state" maxLength={2} defaultValue={church.state ?? ""} className="input" /></Field>
             <Field label="Telefone / WhatsApp"><input name="phone" defaultValue={church.phone ?? ""} className="input" /></Field>
+            <Field label="E-mail"><input name="email" type="email" defaultValue={church.email ?? ""} className="input" /></Field>
             <Field label="Instagram"><input name="instagram" defaultValue={church.instagram ?? ""} placeholder="@igreja" className="input" /></Field>
+            <Field label="Chave PIX (aparece no site)"><input name="pix_key" maxLength={140} defaultValue={church.pix_key ?? ""} placeholder="CNPJ, e-mail ou telefone" className="input" /></Field>
             <Field label="Canal do YouTube" className="sm:col-span-2"><input name="youtube_channel" type="url" defaultValue={church.youtube_channel ?? ""} className="input" /></Field>
             {isAdmin && <div className="sm:col-span-2"><Submit>Salvar</Submit></div>}
           </ActionForm>
@@ -98,6 +105,37 @@ export default async function ConfiguracoesPage({ params }: PageProps<"/painel/[
               })}
             </ul>
           </section>
+
+          {isAdmin && (
+            <section className="card">
+              <h2 className="font-semibold">Liderança (aparece no site)</h2>
+              <ul className="mt-3 divide-y divide-zinc-100 text-sm">
+                {(leaders ?? []).map((l) => (
+                  <li key={l.id} className="flex items-center justify-between gap-2 py-2">
+                    <div className="flex items-center gap-2">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      {l.photo_url ? <img src={l.photo_url} alt="" className="h-9 w-9 rounded-full object-cover" /> : <span className="h-9 w-9 rounded-full bg-zinc-100" />}
+                      <div><p className="font-medium">{l.name}</p><p className="text-xs text-zinc-500">{l.title}</p></div>
+                    </div>
+                    <form action={removeLeader}>
+                      <input type="hidden" name="slug" value={slug} />
+                      <input type="hidden" name="id" value={l.id} />
+                      <ConfirmButton message={"Tirar " + l.name + " do site?"} className="btn-danger py-1 text-xs">Remover</ConfirmButton>
+                    </form>
+                  </li>
+                ))}
+              </ul>
+              <ActionForm action={addLeader} className="mt-3 grid gap-2 sm:grid-cols-2">
+                <input type="hidden" name="slug" value={slug} />
+                <input type="hidden" name="position" value={(leaders?.length ?? 0) + 1} />
+                <input name="name" required placeholder="Nome" className="input" />
+                <input name="title" placeholder="ex.: Pastor titular" className="input" />
+                <input name="bio" placeholder="Uma frase sobre a pessoa (opcional)" className="input sm:col-span-2" />
+                <input name="photo" type="file" accept="image/*" className="text-sm" />
+                <Submit className="btn-ghost">Adicionar</Submit>
+              </ActionForm>
+            </section>
+          )}
 
           {isAdmin && (
             <section className="card">

@@ -2,10 +2,12 @@
 
 :root {
   --brand: #4f46e5;
+  --accent: #f06500;
 }
 
 @theme inline {
   --color-brand: var(--brand);
+  --color-accent: var(--accent);
   --font-sans: var(--font-geist-sans);
 }
 
