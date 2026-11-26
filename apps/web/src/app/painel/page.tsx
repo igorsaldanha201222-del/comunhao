@@ -15,12 +15,15 @@ export default async function PainelHome({ searchParams }: PageProps<"/painel">)
   const supabase = await createClient();
   const { data } = await supabase
     .from("memberships").select("role, maint_request, maint_manage, churches(id, slug, name)").eq("user_id", user.id);
-  // Membro comum que é voluntário do Kids também entra no painel.
+  // Membro comum que é voluntário do Kids ou do diaconato/recepção também entra no painel.
   const kidsOk = new Set<string>();
   await Promise.all((data ?? []).filter((m) => m.role === "member" && !m.maint_request && !m.maint_manage).map(async (m) => {
     const c = m.churches as unknown as { id: string; slug: string };
-    const { data: ok } = await supabase.rpc("kids_can_manage", { p_church: c.id });
-    if (ok) kidsOk.add(c.slug);
+    const [{ data: kids }, { data: att }] = await Promise.all([
+      supabase.rpc("kids_can_manage", { p_church: c.id }),
+      supabase.rpc("attendance_can_mark", { p_church: c.id }),
+    ]);
+    if (kids || att) kidsOk.add(c.slug);
   }));
   const isKids = (m: { churches: unknown }) => kidsOk.has((m.churches as { slug: string }).slug);
   const staff = (data ?? []).filter((m) => m.role !== "member" || m.maint_request || m.maint_manage || isKids(m)) as unknown as {

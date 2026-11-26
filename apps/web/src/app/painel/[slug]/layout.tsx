@@ -13,6 +13,7 @@ const NAV: [string, string, string][] = [
   ["/engajamento", "Engajamento", "S"],
   ["/membresia", "Quero ser membro", "S"],
   ["/ministerios", "Ministérios", "S"],
+  ["/presenca", "Presença no culto", "P"],
   ["/eventos", "Eventos", "S"],
   ["/pregacoes", "Pregações", "S"],
   ["/banners", "Banners", "S"],
@@ -28,9 +29,9 @@ const NAV: [string, string, string][] = [
 
 export default async function PainelLayout({ children, params }: LayoutProps<"/painel/[slug]">) {
   const { slug } = await params;
-  const { church, user, isStaff, canFinance, canMaintRequest, canKids } = await requireStaff(slug);
+  const { church, user, isStaff, canFinance, canMaintRequest, canKids, canAttendance } = await requireStaff(slug);
   const nav = NAV.filter(([, , who]) =>
-    (who.includes("S") && isStaff) || (who.includes("F") && canFinance) || (who.includes("M") && canMaintRequest) || (who.includes("K") && canKids));
+    (who.includes("S") && isStaff) || (who.includes("F") && canFinance) || (who.includes("M") && canMaintRequest) || (who.includes("K") && canKids) || (who.includes("P") && canAttendance));
   const base = `/painel/${slug}`;
   return (
     <div className="flex min-h-screen overflow-x-clip" style={{ ["--brand" as string]: church.primary_color }}>

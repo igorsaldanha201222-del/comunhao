@@ -8,13 +8,13 @@ export const metadata = { title: "Engajamento" };
 
 type Person = { id: string; user_id: string | null; full_name: string; status: string; baptized_at: string | null; phone: string | null };
 type Row = Person & {
-  ministries: number; scales: number; events: number; giveMonths: number; giveTotal: number; last: string | null;
+  ministries: number; scales: number; events: number; cultos: number; giveMonths: number; giveTotal: number; last: string | null;
   serves: boolean; score: number; group: "engajado" | "participa" | "afastado";
 };
 
 const FILTERS = [
   ["", "Todos"], ["engajado", "🔥 Engajados"], ["participa", "🙂 Participam"], ["afastado", "⚠️ Sem participação"],
-  ["nao_batizado", "💧 Não batizados"], ["nao_serve", "Não servem"], ["nao_contribui", "Não contribuem"],
+  ["nao_culto", "⛪ Não vêm ao culto"], ["nao_batizado", "💧 Não batizados"], ["nao_serve", "Não servem"], ["nao_contribui", "Não contribuem"],
 ] as const;
 
 const wa = (phone: string | null) => {
@@ -36,7 +36,7 @@ export default async function Engajamento({ params, searchParams }: PageProps<"/
   const since = new Date(now - months * 30.4 * 864e5).toISOString();
   const nowIso = new Date(now).toISOString();
 
-  const [{ data: people }, { data: mm }, { data: sa }, { data: regs }, gifts] = await Promise.all([
+  const [{ data: people }, { data: mm }, { data: sa }, { data: regs }, gifts, { data: svcs }, { data: satt }] = await Promise.all([
     supabase.from("people").select("id, user_id, full_name, status, baptized_at, phone").eq("church_id", church.id).order("full_name"),
     supabase.from("ministry_members").select("person_id").eq("church_id", church.id),
     supabase.from("schedule_assignments").select("person_id, status, schedules!inner(starts_at)").eq("church_id", church.id)
@@ -47,7 +47,11 @@ export default async function Engajamento({ params, searchParams }: PageProps<"/
       ? supabase.from("finance_entries").select("person_id, amount_cents, entry_date").eq("church_id", church.id)
           .eq("type", "entrada").eq("status", "pago").gte("entry_date", since.slice(0, 10)).not("person_id", "is", null)
       : Promise.resolve({ data: [] as { person_id: string; amount_cents: number; entry_date: string }[] }),
+    supabase.from("services").select("id, service_date").eq("church_id", church.id).gte("service_date", since.slice(0, 10)),
+    supabase.from("service_attendance").select("person_id, service_id, services!inner(service_date)").eq("church_id", church.id)
+      .gte("services.service_date", since.slice(0, 10)),
   ]);
+  const totalCultos = svcs?.length ?? 0;
 
   const count = <T,>(arr: T[] | null, key: (x: T) => string | null) => {
     const m = new Map<string, T[]>();
@@ -58,6 +62,7 @@ export default async function Engajamento({ params, searchParams }: PageProps<"/
   const bySa = count(sa as unknown as { person_id: string; schedules: { starts_at: string } }[], (x) => x.person_id);
   const byReg = count(regs, (x) => x.user_id);
   const byGift = count(gifts.data, (x) => x.person_id);
+  const byCulto = count(satt as unknown as { person_id: string; services: { service_date: string } }[], (x) => x.person_id);
 
   const all: Row[] = ((people ?? []) as Person[])
     .filter((p) => p.status !== "inativo" && (withVisitors || p.status !== "visitante"))
@@ -66,13 +71,14 @@ export default async function Engajamento({ params, searchParams }: PageProps<"/
       const events = p.user_id ? byReg.get(p.user_id) ?? [] : [];
       const g = byGift.get(p.id) ?? [];
       const ministries = byMin.get(p.id)?.length ?? 0;
+      const cultos = byCulto.get(p.id) ?? [];
       const serves = ministries > 0 || scales.length > 0;
       const giveMonths = new Set(g.map((x) => x.entry_date.slice(0, 7))).size;
-      const score = (serves ? 1 : 0) + (events.length ? 1 : 0) + (giveMonths ? 1 : 0);
+      const score = (serves ? 1 : 0) + (events.length ? 1 : 0) + (giveMonths ? 1 : 0) + (cultos.length ? 1 : 0);
       return {
-        ...p, ministries, scales: scales.length, events: events.length, giveMonths,
+        ...p, ministries, scales: scales.length, events: events.length, cultos: cultos.length, giveMonths,
         giveTotal: g.reduce((s, x) => s + Number(x.amount_cents), 0),
-        last: maxDate(...scales.map((x) => x.schedules.starts_at), ...events.map((x) => x.checked_in_at ?? x.created_at), ...g.map((x) => x.entry_date)),
+        last: maxDate(...scales.map((x) => x.schedules.starts_at), ...events.map((x) => x.checked_in_at ?? x.created_at), ...g.map((x) => x.entry_date), ...cultos.map((x) => x.services.service_date)),
         serves, score, group: score >= 2 ? "engajado" : score === 1 ? "participa" : "afastado",
       };
     });
@@ -81,6 +87,7 @@ export default async function Engajamento({ params, searchParams }: PageProps<"/
     if (q && !r.full_name.toLowerCase().includes(q)) return false;
     if (filter === "nao_batizado") return !r.baptized_at;
     if (filter === "nao_serve") return !r.serves;
+    if (filter === "nao_culto") return r.cultos === 0;
     if (filter === "nao_contribui") return r.giveMonths === 0;
     return !filter || r.group === filter;
   });
@@ -89,6 +96,7 @@ export default async function Engajamento({ params, searchParams }: PageProps<"/
     batizados: all.filter((r) => r.baptized_at).length,
     servem: all.filter((r) => r.serves).length,
     eventos: all.filter((r) => r.events).length,
+    cultos: all.filter((r) => r.cultos).length,
     contribuem: all.filter((r) => r.giveMonths).length,
     afastados: all.filter((r) => r.group === "afastado").length,
   };
@@ -112,7 +120,8 @@ export default async function Engajamento({ params, searchParams }: PageProps<"/
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-6">
+        <Stat label="⛪ Vêm ao culto" value={n.cultos} hint={totalCultos ? `${pct(n.cultos)} · ${totalCultos} cultos` : "faça a chamada"} />
         <Stat label="💧 Batizados" value={n.batizados} hint={pct(n.batizados)} />
         <Stat label="🙌 Servem" value={n.servem} hint={pct(n.servem)} />
         <Stat label="📅 Vão aos eventos" value={n.eventos} hint={pct(n.eventos)} />
@@ -135,7 +144,7 @@ export default async function Engajamento({ params, searchParams }: PageProps<"/
 
       {filter === "afastado" && shown.length > 0 && (
         <p className="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
-          Essas pessoas não serviram, não foram a eventos{canFinance ? " nem contribuíram" : ""} nos últimos {months} meses. Vale uma ligação ou visita pastoral. 🙏
+          Essas pessoas não vieram aos cultos marcados, não serviram, não foram a eventos{canFinance ? " nem contribuíram" : ""} nos últimos {months} meses. Vale uma ligação ou visita pastoral. 🙏
         </p>
       )}
 
@@ -159,6 +168,7 @@ export default async function Engajamento({ params, searchParams }: PageProps<"/
                   <span className={`${chip} ${r.serves ? "bg-violet-100 text-violet-800" : "bg-zinc-100 text-zinc-400"}`}>
                     🙌 {r.serves ? `${r.ministries} min. · ${r.scales} escala(s)` : "Não serve"}
                   </span>
+                  <span className={`${chip} ${r.cultos ? "bg-rose-100 text-rose-800" : "bg-zinc-100 text-zinc-400"}`}>⛪ {r.cultos}/{totalCultos} cultos</span>
                   <span className={`${chip} ${r.events ? "bg-amber-100 text-amber-800" : "bg-zinc-100 text-zinc-400"}`}>📅 {r.events} evento(s)</span>
                   {canFinance && (
                     <span className={`${chip} ${r.giveMonths ? "bg-emerald-100 text-emerald-800" : "bg-zinc-100 text-zinc-400"}`}>
@@ -173,7 +183,7 @@ export default async function Engajamento({ params, searchParams }: PageProps<"/
         {!shown.length && <div className="p-4"><Empty>Ninguém nesse filtro.</Empty></div>}
       </section>
       <p className="mt-3 text-xs text-zinc-500">
-        Serve = está em algum ministério ou foi escalado. Eventos = inscrições/check-ins pelo app ou site.
+        Culto = marcado na chamada (Presença no culto). Serve = está em algum ministério ou foi escalado. Eventos = inscrições/check-ins pelo app ou site.
         {canFinance ? " Contribui = dízimo/oferta ligado à pessoa (doação online ou lançamento do tesoureiro com o contribuinte escolhido)." : ""}
         {" "}O batismo é marcado no cadastro da pessoa.
       </p>

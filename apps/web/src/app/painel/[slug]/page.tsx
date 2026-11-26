@@ -6,9 +6,9 @@ import { Badge, PageHeader, Stat } from "@/components/ui";
 
 export default async function Dashboard({ params }: PageProps<"/painel/[slug]">) {
   const { slug } = await params;
-  const { church, supabase, canFinance: isAdmin, isStaff, canMaintRequest, canKids } = await requireStaff(slug);
+  const { church, supabase, canFinance: isAdmin, isStaff, canMaintRequest, canKids, canAttendance } = await requireStaff(slug);
   // tesoureiro cai no financeiro; quem só cuida/abre chamados cai na manutenção
-  if (!isStaff) redirect(`/painel/${slug}/${isAdmin ? "financeiro" : canKids ? "kids" : canMaintRequest ? "manutencao" : "financeiro"}`);
+  if (!isStaff) redirect(`/painel/${slug}/${isAdmin ? "financeiro" : canAttendance ? "presenca" : canKids ? "kids" : canMaintRequest ? "manutencao" : "financeiro"}`);
   const id = church.id;
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
   const now = new Date().toISOString();

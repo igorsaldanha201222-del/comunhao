@@ -54,12 +54,17 @@ export const requireStaff = cache(async (slug: string) => {
   const isAdmin = role === "owner" || role === "admin";
   const canMaintManage = isAdmin || !!m?.maint_manage;
   const canMaintRequest = canMaintManage || !!m?.maint_request;
-  const { data: canKids } = role ? await supabase.rpc("kids_can_manage", { p_church: church.id }) : { data: false };
-  if (!role || (role === "member" && !canMaintRequest && !canKids)) redirect("/painel?erro=sem-acesso");
+  const [{ data: canKids }, { data: canAttendance }] = role
+    ? await Promise.all([
+        supabase.rpc("kids_can_manage", { p_church: church.id }),
+        supabase.rpc("attendance_can_mark", { p_church: church.id }),
+      ])
+    : [{ data: false }, { data: false }];
+  if (!role || (role === "member" && !canMaintRequest && !canKids && !canAttendance)) redirect("/painel?erro=sem-acesso");
   return {
     user, church, role, supabase, isAdmin,
     canFinance: isAdmin || role === "treasurer",
     isStaff: role === "owner" || role === "admin" || role === "leader",
-    canMaintManage, canMaintRequest, canKids: !!canKids,
+    canMaintManage, canMaintRequest, canKids: !!canKids, canAttendance: !!canAttendance,
   };
 });
