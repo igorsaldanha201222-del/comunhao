@@ -1,7 +1,7 @@
 // Recursos do app quando roda no navegador (instalado na tela inicial): instalar e notificações.
 // No app nativo nada disto é usado (Platform.OS !== 'web').
 import { useEffect, useState } from 'react';
-import { Platform } from 'react-native';
+import { Alert, Platform, type AlertButton } from 'react-native';
 
 import { supabase } from './supabase';
 
@@ -13,6 +13,18 @@ const listeners = new Set<() => void>();
 const notify = () => listeners.forEach((l) => l());
 
 if (isWeb) {
+  // No navegador o Alert do React Native não mostra nada: usa a caixa de aviso do próprio celular.
+  Alert.alert = (title: string, message?: string, buttons?: AlertButton[]) => {
+    const text = [title, message].filter(Boolean).join('\n\n');
+    const actions = (buttons ?? []).filter((b) => b.style !== 'cancel');
+    if (buttons && buttons.length > 1) {
+      if (window.confirm(text)) actions[actions.length - 1]?.onPress?.();
+      else buttons.find((b) => b.style === 'cancel')?.onPress?.();
+    } else {
+      window.alert(text);
+      buttons?.[0]?.onPress?.();
+    }
+  };
   // O Android/Chrome avisa quando dá para instalar; guardamos para o botão "Instalar app".
   window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferred = e as InstallPrompt; notify(); });
   window.addEventListener('appinstalled', () => { deferred = null; notify(); });

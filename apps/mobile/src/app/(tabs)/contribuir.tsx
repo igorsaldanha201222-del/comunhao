@@ -2,7 +2,7 @@ import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState } from 'react';
-import { Alert, View } from 'react-native';
+import { Alert, Text, View } from 'react-native';
 
 import { Button, Card, Chips, H2, Input, Muted, Screen } from '@/components/ui';
 import { useChurch } from '@/lib/session';
@@ -20,6 +20,13 @@ export default function Contribuir() {
   const [cpf, setCpf] = useState('');
   const [busy, setBusy] = useState(false);
   const [pix, setPix] = useState<{ payload: string; qr: string } | null>(null);
+  // Pagamento online só funciona com a conta de recebimento configurada; sem ela, mostra a chave Pix da igreja.
+  const [cfg, setCfg] = useState<{ online: boolean; pixKey: string | null } | null>(null);
+
+  useEffect(() => {
+    supabase.from('churches').select('pix_key, payment_wallet_id').eq('id', church.id).maybeSingle()
+      .then(({ data }) => setCfg({ online: !!data?.payment_wallet_id, pixKey: data?.pix_key ?? null }));
+  }, [church.id]);
 
   useEffect(() => {
     supabase.from('donation_funds').select('id, name').eq('church_id', church.id).eq('active', true).order('position')
@@ -37,6 +44,27 @@ export default function Contribuir() {
     if (error || data?.error) return Alert.alert('Contribuição', await fnError(error, data));
     if (method === 'pix') setPix({ payload: data.pix_payload, qr: data.pix_qr_base64 });
     else await WebBrowser.openBrowserAsync(data.invoice_url);
+  }
+
+  if (cfg && !cfg.online) {
+    return (
+      <Screen title="Contribuir" subtitle="Dízimos e ofertas" color={color}>
+        {cfg.pixKey ? (
+          <Card>
+            <H2>💚 Contribua pelo Pix da igreja</H2>
+            <Muted>Abra o app do seu banco, escolha Pix → Pagar com chave e cole a chave abaixo.</Muted>
+            <Text selectable style={{ fontSize: 18, fontWeight: '700', paddingVertical: 8 }}>{cfg.pixKey}</Text>
+            <Button title="Copiar chave Pix" color={color} onPress={async () => { await Clipboard.setStringAsync(cfg.pixKey!); Alert.alert('Chave Pix copiada!', 'Agora é só colar no app do seu banco.'); }} />
+            <Muted>Que Deus abençoe a sua generosidade. 🙏</Muted>
+          </Card>
+        ) : (
+          <Card>
+            <H2>Contribuições pelo app em breve</H2>
+            <Muted>A igreja ainda não cadastrou a forma de receber pelo app. Enquanto isso, fale com a tesouraria para contribuir.</Muted>
+          </Card>
+        )}
+      </Screen>
+    );
   }
 
   if (pix) {
