@@ -61,6 +61,8 @@ function RootNavigator() {
         <Stack.Screen name="evento/[id]" options={{ headerShown: true, title: 'Evento', headerBackTitle: 'Voltar' }} />
         <Stack.Screen name="escala/[id]" options={{ headerShown: true, title: 'Escala', headerBackTitle: 'Voltar' }} />
         <Stack.Screen name="presenca" options={{ headerShown: true, title: 'Presença', headerBackTitle: 'Voltar' }} />
+        <Stack.Screen name="financeiro/index" options={{ headerShown: true, title: 'Financeiro', headerBackTitle: 'Voltar' }} />
+        <Stack.Screen name="financeiro/novo" options={{ headerShown: true, title: 'Novo lançamento', headerBackTitle: 'Voltar', presentation: 'modal' }} />
         <Stack.Screen name="membro/index" options={{ headerShown: true, title: 'Quero ser membro', headerBackTitle: 'Voltar' }} />
         <Stack.Screen name="kids/index" options={{ headerShown: true, title: 'Kids', headerBackTitle: 'Voltar' }} />
         <Stack.Screen name="kids/novo" options={{ headerShown: true, title: 'Cadastrar filho', headerBackTitle: 'Voltar', presentation: 'modal' }} />

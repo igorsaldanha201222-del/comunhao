@@ -121,9 +121,9 @@ export default function Inicio() {
         </Card>
       )}
 
-      {me.isStaff && (
-        <Section title="Sua igreja hoje">
-          <View style={{ flexDirection: 'row', gap: 12 }}>
+      {(me.isStaff || me.canFinance) && (
+        <Section title={me.isStaff ? 'Sua igreja hoje' : 'Tesouraria'}>
+          {me.isStaff && <View style={{ flexDirection: 'row', gap: 12 }}>
             <Card style={{ flex: 1, gap: 4 }}>
               <Text style={{ fontFamily: F.semibold, fontSize: 12, color: C.muted }}>Visitantes no mês</Text>
               <Text style={{ fontFamily: F.extrabold, fontSize: 28, color: C.text }}>{stats?.visitors ?? '–'}</Text>
@@ -132,12 +132,12 @@ export default function Inicio() {
               <Text style={{ fontFamily: F.semibold, fontSize: 12, color: C.muted }}>Na trilha de membro</Text>
               <Text style={{ fontFamily: F.extrabold, fontSize: 28, color: C.text }}>{stats?.trail ?? '–'}</Text>
             </Card>
-          </View>
+          </View>}
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-            <QuickAction label="Abrir chamada" icon={ClipboardCheck} color={color} solid onPress={() => open(`${siteBase()}/painel/${church.slug}/presenca`)} />
-            <QuickAction label="Enviar aviso" icon={Megaphone} color={color} onPress={() => open(`${siteBase()}/painel/${church.slug}/notificacoes`)} />
-            {me.canFinance && <QuickAction label="Financeiro" icon={TrendingUp} color={color} onPress={() => open(`${siteBase()}/painel/${church.slug}/financeiro`)} />}
-            <QuickAction label="Pessoas" icon={Users} color={color} onPress={() => open(`${siteBase()}/painel/${church.slug}/engajamento`)} />
+            {me.canFinance && <QuickAction label="Financeiro" icon={TrendingUp} color={color} solid onPress={() => router.push('/financeiro')} />}
+            {me.canFinance && <QuickAction label="Lançar" icon={HeartHandshake} color={color} onPress={() => router.push('/financeiro/novo')} />}
+            {me.isStaff && <QuickAction label="Abrir chamada" icon={ClipboardCheck} color={color} solid={!me.canFinance} onPress={() => open(`${siteBase()}/painel/${church.slug}/presenca`)} />}
+            {me.isStaff && <QuickAction label="Enviar aviso" icon={Megaphone} color={color} onPress={() => open(`${siteBase()}/painel/${church.slug}/notificacoes`)} />}
           </View>
         </Section>
       )}
