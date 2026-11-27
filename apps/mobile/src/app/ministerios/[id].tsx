@@ -1,6 +1,6 @@
-import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { CalendarDays, Crown, Plus, Search, X } from 'lucide-react-native';
-import { useState } from 'react';
+import { Stack, router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { CalendarDays, Crown, Music, Pencil, Plus, Search, X } from 'lucide-react-native';
+import { useCallback, useState } from 'react';
 import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 
 import { C, Card, F, Muted, Screen, Section } from '@/components/ui';
@@ -9,23 +9,26 @@ import { supabase } from '@/lib/supabase';
 import { useData } from '@/lib/use-data';
 
 type Member = { person_id: string; is_leader: boolean; people: { full_name: string; phone: string | null } | null };
-type Data = { m: { name: string; color: string; description: string | null } | null; members: Member[]; people: { id: string; full_name: string }[]; next: { id: string; title: string; starts_at: string }[] };
+type Data = { m: { name: string; color: string; description: string | null; kind: string } | null; members: Member[]; people: { id: string; full_name: string }[]; next: { id: string; title: string; starts_at: string }[]; positions: { id: string; name: string }[] };
 
 export default function Ministerio() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { church, color } = useChurch();
   const [adding, setAdding] = useState(false);
   const [q, setQ] = useState('');
+  const [newPos, setNewPos] = useState('');
   const { data, reload } = useData<Data>(async () => {
-    const [m, mm, pp, sc] = await Promise.all([
-      supabase.from('ministries').select('name, color, description').eq('id', id).maybeSingle(),
+    const [m, mm, pp, sc, pos] = await Promise.all([
+      supabase.from('ministries').select('name, color, description, kind').eq('id', id).maybeSingle(),
       supabase.from('ministry_members').select('person_id, is_leader, people(full_name, phone)').eq('ministry_id', id),
       supabase.from('people').select('id, full_name').eq('church_id', church.id).neq('status', 'inativo').order('full_name').limit(2000),
-      supabase.from('schedules').select('id, title, starts_at').eq('ministry_id', id).gte('starts_at', new Date().toISOString()).order('starts_at').limit(5),
+      supabase.from('schedules').select('id, title, starts_at').eq('ministry_id', id).gte('starts_at', new Date(Date.now() - 86400_000).toISOString()).order('starts_at').limit(12),
+      supabase.from('ministry_positions').select('id, name').eq('ministry_id', id).order('position').order('name'),
     ]);
     const members = ((mm.data ?? []) as unknown as Member[]).sort((a, b) => Number(b.is_leader) - Number(a.is_leader) || (a.people?.full_name ?? '').localeCompare(b.people?.full_name ?? ''));
-    return { m: m.data, members, people: pp.data ?? [], next: sc.data ?? [] };
-  }, { m: null, members: [], people: [], next: [] }, `min:${id}`);
+    return { m: m.data, members, people: pp.data ?? [], next: sc.data ?? [], positions: pos.data ?? [] };
+  }, { m: null, members: [], people: [], next: [], positions: [] }, `min:${id}`);
+  useFocusEffect(useCallback(() => { reload(); }, [reload]));
   if (!data.m) return <Screen color={color}><Muted>Carregando…</Muted></Screen>;
 
   const norm = (t: string) => t.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
@@ -49,11 +52,26 @@ export default function Ministerio() {
       } },
     ]);
   }
+  async function addPos() {
+    const { error } = await supabase.from('ministry_positions').insert({ ministry_id: id, church_id: church.id, name: newPos.trim(), position: data.positions.length });
+    if (error) return Alert.alert('Não deu', error.code === '23505' ? 'Essa função já existe.' : error.message);
+    setNewPos(''); reload();
+  }
+  function removePos(p: { id: string; name: string }) {
+    Alert.alert('Apagar função?', p.name, [{ text: 'Cancelar', style: 'cancel' }, { text: 'Apagar', style: 'destructive', onPress: async () => {
+      const { error } = await supabase.from('ministry_positions').delete().eq('id', p.id);
+      if (error) Alert.alert('Não deu', error.message); else reload();
+    } }]);
+  }
   const when = (v: string) => new Date(v).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).replace(/\./g, '');
 
   return (
     <Screen color={color}>
-      <Stack.Screen options={{ title: data.m.name }} />
+      <Stack.Screen options={{ title: data.m.name, headerRight: () => (
+        <Pressable onPress={() => router.push({ pathname: '/gestao/ministerio/[id]', params: { id } })} hitSlop={10} accessibilityLabel="Editar ministério" style={{ paddingHorizontal: 8 }}>
+          <Pencil size={20} color={C.text} />
+        </Pressable>
+      ) }} />
       <View style={{ backgroundColor: data.m.color, borderRadius: 24, padding: 20, gap: 4 }}>
         <Text style={{ fontFamily: F.extrabold, fontSize: 24, color: '#fff' }}>{data.m.name}</Text>
         <Text style={{ fontFamily: F.medium, fontSize: 14, color: 'rgba(255,255,255,0.9)' }}>
@@ -106,11 +124,15 @@ export default function Ministerio() {
         </Card>
       </Section>
 
-      {data.next.length > 0 && (
-        <Section title="Próximas escalas">
+      <Section title="Escalas">
+        <Pressable onPress={() => router.push({ pathname: '/gestao/escala/[id]', params: { id: 'novo', m: id } })} accessibilityRole="button"
+          style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 50, borderRadius: 14, backgroundColor: color, opacity: pressed ? 0.85 : 1 })}>
+          <Plus size={20} color="#fff" /><Text style={{ fontFamily: F.bold, fontSize: 15, color: '#fff' }}>Nova escala</Text>
+        </Pressable>
+        {data.next.length > 0 && (
           <Card style={{ padding: 0, gap: 0 }}>
             {data.next.map((s, i) => (
-              <Pressable key={s.id} onPress={() => router.push({ pathname: '/escala/[id]', params: { id: s.id } })} accessibilityRole="button"
+              <Pressable key={s.id} onPress={() => router.push({ pathname: '/gestao/escala/[id]', params: { id: s.id } })} accessibilityRole="button"
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: i ? 1 : 0, borderTopColor: '#eef1ed' }}>
                 <CalendarDays size={18} color={color} />
                 <View style={{ flex: 1 }}>
@@ -120,7 +142,39 @@ export default function Ministerio() {
               </Pressable>
             ))}
           </Card>
-        </Section>
+        )}
+      </Section>
+
+      <Section title="Funções">
+        <Card>
+          {data.positions.length === 0 ? <Muted>Ex.: vocal, violão, bateria, som, recepção da porta.</Muted> : (
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {data.positions.map((p) => (
+                <Pressable key={p.id} onPress={() => removePos(p)} accessibilityRole="button" accessibilityLabel={`Apagar função ${p.name}`}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: C.bg, borderWidth: 1, borderColor: C.line }}>
+                  <Text style={{ fontFamily: F.semibold, fontSize: 14, color: C.text }}>{p.name}</Text>
+                  <X size={14} color={C.muted} />
+                </Pressable>
+              ))}
+            </View>
+          )}
+          <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+            <TextInput value={newPos} onChangeText={setNewPos} placeholder="Nova função" placeholderTextColor="#8a948e"
+              style={{ flex: 1, height: 46, borderRadius: 12, borderWidth: 1, borderColor: C.line, paddingHorizontal: 12, fontFamily: F.regular, fontSize: 15, color: C.text }} />
+            <Pressable onPress={addPos} disabled={newPos.trim().length < 2} accessibilityRole="button"
+              style={{ height: 46, paddingHorizontal: 16, borderRadius: 12, backgroundColor: color, alignItems: 'center', justifyContent: 'center', opacity: newPos.trim().length < 2 ? 0.4 : 1 }}>
+              <Text style={{ fontFamily: F.bold, color: '#fff' }}>Adicionar</Text>
+            </Pressable>
+          </View>
+        </Card>
+      </Section>
+
+      {data.m.kind === 'louvor' && (
+        <Pressable onPress={() => router.push({ pathname: '/gestao/repertorio/[id]', params: { id } })} accessibilityRole="button"
+          style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.card, borderRadius: 18, borderWidth: 1, borderColor: C.border, padding: 16, opacity: pressed ? 0.85 : 1 })}>
+          <Music size={20} color={color} />
+          <Text style={{ flex: 1, fontFamily: F.bold, fontSize: 15, color: C.text }}>Repertório</Text>
+        </Pressable>
       )}
     </Screen>
   );

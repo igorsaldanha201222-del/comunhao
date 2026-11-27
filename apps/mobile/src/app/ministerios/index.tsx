@@ -3,6 +3,7 @@ import { ChevronRight, Crown } from 'lucide-react-native';
 import { useCallback } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
+import { AddButton } from '@/components/admin';
 import { C, Empty, F, Screen } from '@/components/ui';
 import { useChurch } from '@/lib/session';
 import { supabase } from '@/lib/supabase';
@@ -22,6 +23,7 @@ export default function Ministerios() {
 
   return (
     <Screen color={color} refreshing={refreshing} onRefresh={refresh}>
+      <AddButton label="Novo ministério" color={color} onPress={() => router.push({ pathname: '/gestao/ministerio/[id]', params: { id: 'novo' } })} />
       {data.length === 0 && <Empty>Nenhum ministério cadastrado.</Empty>}
       {data.map((m) => {
         const leaders = m.members.filter((x) => x.is_leader).map((x) => x.people?.full_name.split(' ')[0]).filter(Boolean);
