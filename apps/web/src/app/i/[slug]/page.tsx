@@ -2,15 +2,17 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import { brl, date, dateTime, youtubeId } from "@/lib/format";
+import { brl, date, dateTime, nowMs, youtubeId } from "@/lib/format";
 import { BRAND } from "@/lib/brand";
 import { STEPS } from "@/lib/journey";
+import { todayBR } from "@/lib/kids";
+import { SITE_LINKS } from "./site-shell";
 import { CopyPix } from "./copy-pix";
 
 async function load(slug: string) {
   const supabase = await createClient();
   const { data: church } = await supabase.from("churches")
-    .select("id, slug, name, logo_url, primary_color, accent_color, hero_url, tagline, about, address, city, state, phone, email, instagram, youtube_channel, service_times, pix_key")
+    .select("id, slug, name, logo_url, primary_color, accent_color, hero_url, tagline, about, address, city, state, phone, email, instagram, youtube_channel, service_times, pix_key, live_on, live_title")
     .eq("slug", slug).eq("active", true).maybeSingle();
   return { supabase, church };
 }
@@ -29,11 +31,13 @@ export default async function ChurchSite({ params }: PageProps<"/i/[slug]">) {
   if (!church) notFound();
   const now = new Date().toISOString();
 
-  const [{ data: banners }, { data: events }, { data: sermons }, { data: leaders }] = await Promise.all([
+  const [{ data: banners }, { data: events }, { data: sermons }, { data: leaders }, { data: devo }] = await Promise.all([
     supabase.from("banners").select("id, title, image_url, link_url").eq("church_id", church.id).order("position").limit(3),
     supabase.from("events").select("id, title, starts_at, location, price_cents, cover_url").eq("church_id", church.id).gte("starts_at", now).order("starts_at").limit(6),
     supabase.from("sermons").select("id, title, preacher, preached_at, video_url").eq("church_id", church.id).order("preached_at", { ascending: false }).limit(3),
     supabase.from("church_leaders").select("id, name, title, bio, photo_url").eq("church_id", church.id).order("position"),
+    supabase.from("devotionals").select("id, title, verse_ref, verse_text").eq("church_id", church.id).eq("published", true)
+      .lte("publish_on", todayBR(nowMs())).order("publish_on", { ascending: false }).limit(1).maybeSingle(),
   ]);
 
   const phone = onlyDigits(church.phone);
@@ -64,12 +68,19 @@ export default async function ChurchSite({ params }: PageProps<"/i/[slug]">) {
           </a>
           <nav className="hidden items-center gap-5 text-sm font-semibold text-zinc-600 lg:flex">
             {nav.map(([href, label]) => <a key={href} href={href} className="transition hover:text-accent">{label}</a>)}
+            {SITE_LINKS.map(([href, label]) => <Link key={href} href={`/i/${slug}${href}`} className="transition hover:text-accent">{label.slice(label.indexOf(" ") + 1)}</Link>)}
           </nav>
           <Link href={`/i/${slug}/participar`} className="shrink-0 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent sm:px-5 sm:py-2.5">
             <span className="sm:hidden">Membro</span><span className="hidden sm:inline">Área do Membro</span>
           </Link>
         </div>
       </header>
+
+      {church.live_on && (
+        <Link href={`/i/${slug}/aovivo`} className="flex items-center justify-center gap-2 bg-red-600 px-4 py-2.5 text-sm font-bold text-white">
+          <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-white" /> AO VIVO AGORA{church.live_title ? `: ${church.live_title}` : ""} — assistir →
+        </Link>
+      )}
 
       <section className="relative flex min-h-[450px] items-center justify-center bg-cover bg-center text-center"
         style={church.hero_url ? { backgroundImage: `url('${church.hero_url}')` } : { background: "linear-gradient(135deg, var(--brand), #0f172a)" }}>
@@ -86,6 +97,28 @@ export default async function ChurchSite({ params }: PageProps<"/i/[slug]">) {
           </Link>
         </div>
       </section>
+
+      <div className="mx-auto -mt-10 grid max-w-4xl grid-cols-3 gap-2 px-4 sm:gap-4">
+        {SITE_LINKS.map(([href, label]) => (
+          <Link key={href} href={`/i/${slug}${href}`}
+            className="relative flex flex-col items-center gap-1 rounded-xl bg-white px-2 py-4 text-center text-sm font-bold text-zinc-800 shadow-[0_5px_20px_rgba(0,0,0,0.08)] transition hover:-translate-y-0.5 sm:text-base">
+            <span className="text-3xl">{label.split(" ")[0]}</span>
+            {label.slice(label.indexOf(" ") + 1)}
+            {href === "/aovivo" && church.live_on && <span className="absolute top-2 right-2 h-2.5 w-2.5 animate-pulse rounded-full bg-red-600" />}
+          </Link>
+        ))}
+      </div>
+
+      {devo && (
+        <Link href={`/i/${slug}/devocional/${devo.id}`} className="mx-auto mt-8 block max-w-4xl px-4">
+          <div className="rounded-xl border-l-4 border-brand bg-white p-5 shadow-[0_5px_20px_rgba(0,0,0,0.05)] transition hover:shadow-lg">
+            <p className="text-xs font-bold uppercase tracking-wide text-brand">🙏 Devocional de hoje</p>
+            <p className="mt-1 text-lg font-bold">{devo.title}</p>
+            {devo.verse_text && <p className="mt-1 line-clamp-2 italic text-zinc-600">“{devo.verse_text}” {devo.verse_ref && <span className="not-italic font-semibold">— {devo.verse_ref}</span>}</p>}
+            <p className="mt-2 text-sm font-semibold text-brand">Ler o devocional →</p>
+          </div>
+        </Link>
+      )}
 
       {!!banners?.length && (
         <div className="mx-auto grid max-w-6xl gap-4 px-5 pt-12 sm:grid-cols-2">

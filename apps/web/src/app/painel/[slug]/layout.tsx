@@ -16,6 +16,8 @@ const NAV: [string, string, string][] = [
   ["/presenca", "Presença no culto", "P"],
   ["/eventos", "Eventos", "S"],
   ["/pregacoes", "Pregações", "S"],
+  ["/aovivo", "Ao vivo", "S"],
+  ["/devocionais", "Devocionais", "S"],
   ["/banners", "Banners", "S"],
   ["/notificacoes", "Notificações", "S"],
   ["/oracoes", "Pedidos de oração", "S"],

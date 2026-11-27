@@ -18,6 +18,9 @@ export type Church = {
   phone: string | null;
   instagram: string | null;
   youtube_channel: string | null;
+  live_url: string | null;
+  live_on: boolean;
+  live_title: string | null;
   plan: string;
   accent_color: string | null;
   hero_url: string | null;
