@@ -1,6 +1,6 @@
 import { Stack, router, type Href } from 'expo-router';
 import {
-  Baby, ClipboardCheck, Clock, Contact, Image as ImageIcon, Layers, Megaphone, Mic, Radio,
+  Baby, CalendarDays, ClipboardCheck, Clock, Contact, HandHeart, Image as ImageIcon, Layers, Megaphone, Mic, Radio,
   Sun, Sunrise, TrendingUp, Users, Wrench, type LucideIcon,
 } from 'lucide-react-native';
 import { Text, View } from 'react-native';
@@ -15,6 +15,7 @@ const GROUPS: [string, Item[]][] = [
   ['Pessoas', [
     { icon: Contact, label: 'Pessoas', sub: 'Membros e visitantes', href: '/pessoas', who: 'staff' },
     { icon: Users, label: 'Visitantes', sub: 'Quem chegou e o contato', href: '/visitantes', who: 'staff' },
+    { icon: HandHeart, label: 'Pedidos de oração', sub: 'Orar e marcar', href: '/gestao/oracoes', who: 'staff' },
   ]],
   ['Cultos e ministérios', [
     { icon: ClipboardCheck, label: 'Chamada', sub: 'Presença do culto', href: '/chamada', who: 'staff' },
@@ -22,6 +23,7 @@ const GROUPS: [string, Item[]][] = [
     { icon: Megaphone, label: 'Enviar aviso', sub: 'Notificação no celular', href: '/aviso', who: 'staff' },
   ]],
   ['Conteúdo', [
+    { icon: CalendarDays, label: 'Eventos', sub: 'Criar, inscritos, check-in', href: '/gestao/eventos', who: 'staff' },
     { icon: Radio, label: 'Ao vivo', sub: 'Ligar a transmissão', href: '/gestao/aovivo', who: 'staff' },
     { icon: Mic, label: 'Pregações', sub: 'Vídeos e áudios', href: '/gestao/pregacoes', who: 'staff' },
     { icon: Sunrise, label: 'Devocionais', sub: 'Escrever e agendar', href: '/gestao/devocionais', who: 'staff' },
