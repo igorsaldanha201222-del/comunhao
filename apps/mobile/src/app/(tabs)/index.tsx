@@ -5,6 +5,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { AppInstallCard } from '@/components/app-install';
 import { Button, Card, Empty, H2, Muted, Screen, fmtDateTime } from '@/components/ui';
+import { todayService } from '@/lib/checkin';
 import { level, loadJourney, maxXp, stepsDone, xp } from '@/lib/journey';
 import { useChurch } from '@/lib/session';
 import { supabase } from '@/lib/supabase';
@@ -17,7 +18,7 @@ type Notice = { id: string; title: string; body: string; sent_at: string };
 const ytId = (u: string | null) => u?.match(/(?:youtu\.be\/|v=|embed\/|live\/|shorts\/)([\w-]{11})/)?.[1] ?? null;
 
 export default function Inicio() {
-  const { church, color, user } = useChurch();
+  const { church, color, user, personId } = useChurch();
   const { data, refresh, refreshing } = useData(async () => {
     const [b, s, n] = await Promise.all([
       supabase.from('banners').select('id, title, image_url, link_url').eq('church_id', church.id).order('position').limit(5),
@@ -29,11 +30,12 @@ export default function Inicio() {
   const { banners, sermons, notices } = data;
   const { data: trail } = useData(() => loadJourney(church.id, user.id),
     { journey: null, isMember: false, phone: '', lessons: [], attended: [] }, `trail:${church.id}:${user.id}`);
+  const { data: culto, refresh: refreshCulto } = useData(() => todayService(church.id, personId), null, `culto:${church.id}:${personId}`);
   const tj = trail.journey;
   const tPct = tj ? Math.round((xp(tj, trail.attended.length) / maxXp(trail.lessons.length)) * 100) : 0;
 
   return (
-    <Screen title={church.name} subtitle="Bem-vindo!" color={color} refreshing={refreshing} onRefresh={refresh}>
+    <Screen title={church.name} subtitle="Bem-vindo!" color={color} refreshing={refreshing} onRefresh={() => { refresh(); refreshCulto(); }}>
       {banners.length > 0 && (
         <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
           {banners.map((b) => (
@@ -42,6 +44,14 @@ export default function Inicio() {
             </Pressable>
           ))}
         </ScrollView>
+      )}
+
+      {culto && !culto.present && (
+        <Card style={{ borderColor: color, borderWidth: 2 }}>
+          <H2>🙏 Está no {culto.title}?</H2>
+          <Muted>Confirme sua presença com um toque — o app confere pelo GPS se você está na igreja.</Muted>
+          <Button title="Confirmar presença" color={color} onPress={() => router.push({ pathname: '/presenca', params: { s: culto.id } })} />
+        </Card>
       )}
 
       <AppInstallCard />

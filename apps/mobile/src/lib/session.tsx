@@ -26,7 +26,10 @@ const KEY = 'igreja_atual';
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
-  const [selected, setSelected] = useState<Church | null>(null);
+  // Lembra a última igreja já na abertura: o app abre direto, mesmo sem internet.
+  const [selected, setSelected] = useState<Church | null>(() => {
+    try { const v = localStorage.getItem(KEY); return v ? (JSON.parse(v) as Church) : null; } catch { return null; }
+  });
   // personId guardado junto da chave usuário+igreja a que pertence
   const [person, setPerson] = useState<{ key: string; id: string | null } | null>(null);
 
@@ -41,14 +44,16 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const userId = session?.user.id ?? null;
 
-  // Restaura a última igreja, conferindo se o usuário ainda é membro.
+  // Confere se o usuário ainda é membro da igreja lembrada. Só tira se a igreja realmente
+  // removeu a pessoa; falha de internet não desloga ninguém.
+  const selectedId = selected?.id ?? null;
   useEffect(() => {
-    const saved = userId ? localStorage.getItem(KEY) : null;
-    if (!userId || !saved) return;
-    const c = JSON.parse(saved) as Church;
-    supabase.from('memberships').select('church_id').eq('church_id', c.id).eq('user_id', userId).maybeSingle()
-      .then(({ data }) => setSelected(data ? c : null));
-  }, [userId]);
+    if (!userId || !selectedId) return;
+    supabase.from('memberships').select('church_id').eq('church_id', selectedId).eq('user_id', userId).maybeSingle()
+      .then(({ data, error }) => {
+        if (!error && !data) { localStorage.removeItem(KEY); setSelected(null); }
+      });
+  }, [userId, selectedId]);
 
   const church = userId ? selected : null;
   const personKey = userId && church ? `${userId}:${church.id}` : null;

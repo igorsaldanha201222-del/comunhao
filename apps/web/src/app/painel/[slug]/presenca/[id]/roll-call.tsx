@@ -7,7 +7,7 @@ type P = { id: string; full_name: string; status: string };
 const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 /** Chamada: um toque marca/desmarca. Atualiza na hora e salva em segundo plano. */
-export function RollCall({ slug, serviceId, people, present }: { slug: string; serviceId: string; people: P[]; present: string[] }) {
+export function RollCall({ slug, serviceId, people, present, sources = {} }: { slug: string; serviceId: string; people: P[]; present: string[]; sources?: Record<string, string> }) {
   const [q, setQ] = useState("");
   const [tab, setTab] = useState<"todos" | "faltam" | "presentes">("todos");
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +61,7 @@ export function RollCall({ slug, serviceId, people, present }: { slug: string; s
                 <span className="min-w-0 flex-1">
                   <span className={`block truncate ${on ? "font-semibold text-emerald-900" : ""}`}>{p.full_name}</span>
                   <span className="text-xs text-zinc-500">{STATUS_LABEL[p.status] ?? p.status}</span>
+                  {on && sources[p.id] && <span className="ml-2 rounded-full bg-indigo-100 px-2 py-0.5 text-[11px] font-medium text-indigo-800">{sources[p.id] === "gps" ? "📍 confirmou pelo app" : "🔳 QR Code"}</span>}
                 </span>
               </button>
             </li>

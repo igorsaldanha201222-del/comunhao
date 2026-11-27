@@ -51,6 +51,12 @@
           "photosPermission": "O app usa suas fotos para anexar aos chamados de manutenção.",
           "cameraPermission": "O app usa a câmera para fotografar o que precisa de manutenção."
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "O app usa sua localização só na hora de confirmar presença no culto, para ver se você está na igreja."
+        }
       ]
     ],
     "experiments": {

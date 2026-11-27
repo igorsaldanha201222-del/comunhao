@@ -34,6 +34,8 @@ let html = readFileSync(index, "utf8")
     '<meta name="mobile-web-app-capable" content="yes">',
     '<meta name="apple-mobile-web-app-title" content="Comunhão">',
     '<meta name="apple-mobile-web-app-status-bar-style" content="default">',
+    // guarda o link de entrada (notificação / QR Code) antes de o app carregar e mexer na URL
+    "<script>window.__entryPath=location.pathname+location.search</script>",
     "</head>",
   ].join("\n"))
   .replace('content="width=device-width, initial-scale=1, shrink-to-fit=no"', 'content="width=device-width, initial-scale=1, viewport-fit=cover"');

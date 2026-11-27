@@ -7,7 +7,7 @@ type Target = { kind: "web" | "expo"; endpoint: string; p256dh: string | null; a
  * Envia um aviso já salvo para todos os aparelhos da igreja:
  * app pelo navegador (Web Push) e app nativo (Expo Push). Retorna quantos receberam.
  */
-export async function dispatchNotification(supabase: SupabaseClient, id: string, msg: { title: string; body: string; url: string }) {
+export async function dispatchNotification(supabase: SupabaseClient, id: string, msg: { title: string; body: string; url: string; checkin?: string }) {
   const { data, error } = await supabase.rpc("notification_dispatch", { p_notification: id });
   if (error) throw new Error(error.message);
   const targets = (data ?? []) as Target[];

@@ -21,6 +21,9 @@ export type Church = {
   live_url: string | null;
   live_on: boolean;
   live_title: string | null;
+  lat: number | null;
+  lng: number | null;
+  checkin_radius: number;
   plan: string;
   accent_color: string | null;
   hero_url: string | null;

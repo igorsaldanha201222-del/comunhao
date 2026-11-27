@@ -6,6 +6,7 @@ import { todayBR } from "@/lib/kids";
 import { ActionForm, Submit } from "@/components/form";
 import { Empty, Field, PageHeader } from "@/components/ui";
 import { createService } from "./actions";
+import { LocationForm } from "./location-form";
 
 export const metadata = { title: "Presença no culto" };
 
@@ -53,7 +54,19 @@ export default async function Presenca({ params }: PageProps<"/painel/[slug]/pre
           <p className="mt-3 text-xs text-zinc-500">Quem pode fazer a chamada: a liderança e quem está nos ministérios de Diaconato ou Recepção.</p>
         </section>
 
-        <div className="space-y-6">
+        {isStaff && (
+          <section className="card h-fit lg:col-start-1">
+            <h2 className="font-semibold">📍 Local da igreja</h2>
+            <p className="mt-1 text-xs text-zinc-500">
+              Usado para o membro confirmar presença pelo celular: no culto, ele responde <strong>Sim</strong> à notificação e o app confere se está perto da igreja.
+              Só guardamos se estava ou não — nunca a localização da pessoa.
+            </p>
+            {church.lat == null && <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">Ainda não marcado. A confirmação pelo GPS só funciona depois disso.</p>}
+            <LocationForm slug={slug} lat={church.lat} lng={church.lng} radius={church.checkin_radius} />
+          </section>
+        )}
+
+        <div className="space-y-6 lg:col-start-2 lg:row-span-2 lg:row-start-1">
           {isStaff && missing.length > 0 && (
             <section className="card border-amber-300 bg-amber-50/60">
               <h2 className="font-semibold text-amber-900">⚠️ Faltaram aos últimos 3 cultos · {missing.length}</h2>
