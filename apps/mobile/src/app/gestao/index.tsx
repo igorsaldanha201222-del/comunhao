@@ -1,7 +1,7 @@
 import { Stack, router, type Href } from 'expo-router';
 import {
   Baby, CalendarDays, Church, ClipboardCheck, Clock, Contact, Footprints, HandHeart, Image as ImageIcon, Layers, Megaphone, Mic, Radio,
-  Sun, Sunrise, TrendingUp, Users, Wrench, type LucideIcon,
+  Building2, Cpu, ShieldCheck, Sun, Sunrise, TrendingUp, Users, Wrench, type LucideIcon,
 } from 'lucide-react-native';
 import { Text, View } from 'react-native';
 
@@ -39,6 +39,11 @@ const GROUPS: [string, Item[]][] = [
     { icon: Baby, label: 'Kids', sub: 'Crianças e check-in', href: '/kids', who: 'staff' },
     { icon: Wrench, label: 'Manutenção', sub: 'Chamados', href: '/manutencao', who: 'staff' },
     { icon: Sun, label: 'Energia solar', sub: 'Geração e alertas', href: '/energia', who: 'staff' },
+    { icon: Cpu, label: 'Aparelhos de energia', sub: 'Cadastrar inversor e token', href: '/gestao/solar', who: 'admin' },
+  ]],
+  ['Configurações', [
+    { icon: Building2, label: 'Dados da igreja', sub: 'Nome, logo, cor, Pix, fundos', href: '/gestao/igreja', who: 'admin' },
+    { icon: ShieldCheck, label: 'Equipe e permissões', sub: 'Quem acessa o quê', href: '/gestao/permissoes', who: 'admin' },
   ]],
 ];
 
