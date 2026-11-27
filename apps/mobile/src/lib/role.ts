@@ -11,6 +11,11 @@ export type Me = {
   isStaff: boolean;      // pastor, administrador ou líder
   canFinance: boolean;   // pastor, administrador ou tesoureiro
   isVisitor: boolean;
+  employee: Employee | null; // funcionário da igreja (bate ponto)
+};
+
+export type Employee = {
+  id: string; job_title: string; work_days: number[]; start_time: string | null; end_time: string | null; punch_required: boolean;
 };
 
 const ROLE_LABEL: Record<Role, string> = {
@@ -29,16 +34,19 @@ function shortName(full: string) {
 export function useMe(): Me {
   const { church, user, personId } = useChurch();
   const { data } = useData(async () => {
-    const [m, p] = await Promise.all([
+    const [m, p, e] = await Promise.all([
       supabase.from('memberships').select('role').eq('church_id', church.id).eq('user_id', user.id).maybeSingle(),
       personId ? supabase.from('people').select('full_name, status').eq('id', personId).maybeSingle() : Promise.resolve({ data: null }),
+      supabase.from('employees').select('id, job_title, work_days, start_time, end_time, punch_required')
+        .eq('church_id', church.id).eq('user_id', user.id).eq('active', true).maybeSingle(),
     ]);
     return {
       role: (m.data?.role ?? null) as Role | null,
       status: (p.data as { status?: string } | null)?.status ?? null,
       name: (p.data as { full_name?: string } | null)?.full_name ?? null,
+      employee: (e.data ?? null) as Employee | null,
     };
-  }, { role: null, status: null, name: null }, `me:${church.id}:${user.id}:${personId}`);
+  }, { role: null, status: null, name: null, employee: null as Employee | null }, `me:${church.id}:${user.id}:${personId}`);
 
   const full = data.name ?? (user.user_metadata?.full_name as string | undefined) ?? '';
   const role = data.role;
@@ -49,6 +57,7 @@ export function useMe(): Me {
     isStaff: role === 'owner' || role === 'admin' || role === 'leader',
     canFinance: role === 'owner' || role === 'admin' || role === 'treasurer',
     isVisitor: data.status === 'visitante',
+    employee: data.employee,
   };
 }
 

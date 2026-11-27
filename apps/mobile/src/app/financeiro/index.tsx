@@ -1,19 +1,33 @@
 import { router, useFocusEffect } from 'expo-router';
 import { ArrowDownLeft, ArrowUpRight, CalendarClock, Plus } from 'lucide-react-native';
 import { useCallback } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Alert, Pressable, Text, View } from 'react-native';
 
 import { C, Card, Empty, F, Muted, Screen, Section, fmtBRL } from '@/components/ui';
 import { type Entry, fmtDay, loadFinance } from '@/lib/finance';
 import { useChurch } from '@/lib/session';
+import { supabase } from '@/lib/supabase';
 import { useData } from '@/lib/use-data';
 
 const EMPTY = { ok: true, accounts: [], total: 0, income: 0, expense: 0, due: [], last: [], categories: [], today: '' };
 
 export default function Financeiro() {
-  const { church, color } = useChurch();
+  const { church, color, user } = useChurch();
   const { data, refresh, refreshing } = useData(() => loadFinance(church.id), EMPTY as Awaited<ReturnType<typeof loadFinance>>, `fin:${church.id}`);
   useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
+
+  function pay(e: Entry) {
+    Alert.alert('Marcar como pago?', `${e.description}
+${fmtBRL(Number(e.amount_cents))} · pago hoje`, [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Paguei', onPress: async () => {
+          const { error } = await supabase.from('finance_entries').update({ status: 'pago', entry_date: data.today, updated_by: user.id }).eq('id', e.id);
+          if (error) Alert.alert('Não deu para salvar', error.message); else refresh();
+        },
+      },
+    ]);
+  }
 
   if (!data.ok) {
     return <Screen title="Financeiro"><Empty>O financeiro é visto só pelo pastor, administração e tesouraria.</Empty></Screen>;
@@ -38,7 +52,7 @@ export default function Financeiro() {
       <Section title="Contas a pagar">
         {data.due.length === 0 ? <Empty>Nada vencendo nos próximos 15 dias.</Empty> : (
           <Card style={{ padding: 0, gap: 0 }}>
-            {data.due.map((e, i) => <Row key={e.id} e={e} first={i === 0} due today={data.today} />)}
+            {data.due.map((e, i) => <Row key={e.id} e={e} first={i === 0} due today={data.today} onPay={() => pay(e)} />)}
           </Card>
         )}
       </Section>
@@ -94,7 +108,7 @@ function BigButton({ label, solid, color, onPress }: { label: string; solid?: bo
   );
 }
 
-function Row({ e, first, due, today }: { e: Entry; first: boolean; due?: boolean; today: string }) {
+function Row({ e, first, due, today, onPay }: { e: Entry; first: boolean; due?: boolean; today: string; onPay?: () => void }) {
   const inc = e.type === 'entrada';
   const late = due && e.due_date && e.due_date < today;
   const date = due ? e.due_date ?? e.entry_date : e.entry_date;
@@ -110,7 +124,14 @@ function Row({ e, first, due, today }: { e: Entry; first: boolean; due?: boolean
           {[late ? `Venceu ${fmtDay(date)}` : due ? `Vence ${fmtDay(date)}` : fmtDay(date), e.category?.name].filter(Boolean).join(' · ')}
         </Text>
       </View>
-      <Text style={{ fontFamily: F.bold, fontSize: 14, color: due ? C.text : inc ? C.ok : C.danger }}>{inc ? '+' : '−'} {fmtBRL(Number(e.amount_cents))}</Text>
+      <View style={{ alignItems: 'flex-end', gap: 4 }}>
+        <Text style={{ fontFamily: F.bold, fontSize: 14, color: due ? C.text : inc ? C.ok : C.danger }}>{inc ? '+' : '−'} {fmtBRL(Number(e.amount_cents))}</Text>
+        {onPay && (
+          <Pressable onPress={onPay} accessibilityRole="button" hitSlop={8}>
+            <Text style={{ fontFamily: F.bold, fontSize: 12, color: C.ok }}>Marcar pago</Text>
+          </Pressable>
+        )}
+      </View>
     </View>
   );
 }

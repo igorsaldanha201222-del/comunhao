@@ -23,6 +23,7 @@ const NAV: [string, string, string][] = [
   ["/oracoes", "Pedidos de oração", "S"],
   ["/financeiro", "Financeiro", "F"],
   ["/doacoes", "Doações online", "F"],
+  ["/funcionarios", "Funcionários", "F"],
   ["/kids", "Kids", "K"],
   ["/manutencao", "Manutenção", "M"],
   ["/solar", "Energia solar", "S"],

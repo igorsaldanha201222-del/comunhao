@@ -18,6 +18,7 @@ export const fmtDay = (d: string) => new Date(d + 'T12:00:00').toLocaleDateStrin
 export async function loadFinance(churchId: string) {
   const today = todayBR();
   const monthStart = today.slice(0, 8) + '01';
+  await supabase.rpc('payroll_generate', { p_church: churchId }); // salários do mês em Contas a pagar
   const [acc, paid, month, due, last, cats] = await Promise.all([
     supabase.from('finance_accounts').select('id, name, kind, opening_cents').eq('church_id', churchId).eq('active', true).order('name'),
     supabase.from('finance_entries').select('account_id, type, amount_cents').eq('church_id', churchId).eq('status', 'pago'),

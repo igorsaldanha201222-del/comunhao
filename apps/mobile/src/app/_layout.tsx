@@ -62,6 +62,8 @@ function RootNavigator() {
         <Stack.Screen name="evento/[id]" options={{ headerShown: true, title: 'Evento', headerBackTitle: 'Voltar' }} />
         <Stack.Screen name="escala/[id]" options={{ headerShown: true, title: 'Escala', headerBackTitle: 'Voltar' }} />
         <Stack.Screen name="presenca" options={{ headerShown: true, title: 'Presença', headerBackTitle: 'Voltar' }} />
+        <Stack.Screen name="ponto" options={{ headerShown: true, title: 'Meu ponto', headerBackTitle: 'Voltar' }} />
+        <Stack.Screen name="equipe" options={{ headerShown: true, title: 'Equipe', headerBackTitle: 'Voltar' }} />
         <Stack.Screen name="visitantes" options={{ headerShown: true, title: 'Visitantes', headerBackTitle: 'Voltar' }} />
         <Stack.Screen name="qr-entrada" options={{ headerShown: true, title: 'QR Code da entrada', headerBackTitle: 'Voltar' }} />
         <Stack.Screen name="chamada" options={{ headerShown: true, title: 'Chamada do culto', headerBackTitle: 'Voltar' }} />

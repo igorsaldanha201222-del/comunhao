@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import {
-  ArrowRight, Baby, BookOpen, Calendar, ChevronRight, ClipboardCheck, HeartHandshake, MapPin, Megaphone, Play,
+  ArrowRight, Baby, Clock, BookOpen, Calendar, ChevronRight, ClipboardCheck, HeartHandshake, MapPin, Megaphone, Play,
   Sunrise, TrendingUp, Users, Video,
 } from 'lucide-react-native';
 import { Pressable, ScrollView, Text, View } from 'react-native';
@@ -83,7 +83,7 @@ export default function Inicio() {
 
   const tj = trail.journey;
   // Trilha de membro: só para quem ainda não serve na igreja (liderança e tesouraria já são da casa).
-  const showJourney = !trail.isMember && !me.isStaff && !me.canFinance && (me.isVisitor || !!tj || me.role === 'member');
+  const showJourney = !trail.isMember && !me.isStaff && !me.canFinance && !me.employee && (me.isVisitor || !!tj || me.role === 'member');
   const done = tj ? stepsDone(tj) : 0;
 
   const header = (
@@ -124,6 +124,22 @@ export default function Inicio() {
         </Card>
       )}
 
+      {me.employee && (
+        <Pressable onPress={() => router.push('/ponto')} accessibilityRole="button"
+          style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: C.card, borderRadius: 20, borderWidth: 1, borderColor: C.border, padding: 16, opacity: pressed ? 0.85 : 1 })}>
+          <View style={{ width: 48, height: 48, borderRadius: 14, backgroundColor: C.tint, alignItems: 'center', justifyContent: 'center' }}>
+            <Clock size={22} color={color} strokeWidth={2} />
+          </View>
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={{ fontFamily: F.bold, fontSize: 16, color: C.text }}>Meu ponto</Text>
+            <Text style={{ fontFamily: F.regular, fontSize: 13, color: C.muted }}>
+              {me.employee.job_title}{me.employee.start_time && me.employee.end_time ? ` · ${me.employee.start_time.slice(0, 5)}–${me.employee.end_time.slice(0, 5)}` : ''}
+            </Text>
+          </View>
+          <ChevronRight size={18} color="#9aa39d" />
+        </Pressable>
+      )}
+
       {(me.isStaff || me.canFinance) && (
         <Section title={me.isStaff ? 'Sua igreja hoje' : 'Tesouraria'}>
           {me.isStaff && <View style={{ flexDirection: 'row', gap: 12 }}>
@@ -144,6 +160,7 @@ export default function Inicio() {
             {me.canFinance && <QuickAction label="Lançar" icon={HeartHandshake} color={color} onPress={() => router.push('/financeiro/novo')} />}
             {me.isStaff && <QuickAction label="Abrir chamada" icon={ClipboardCheck} color={color} solid={!me.canFinance} onPress={() => router.push('/chamada')} />}
             {me.isStaff && <QuickAction label="Enviar aviso" icon={Megaphone} color={color} onPress={() => router.push('/aviso')} />}
+            <QuickAction label="Equipe" icon={Users} color={color} onPress={() => router.push('/equipe')} />
           </View>
         </Section>
       )}
