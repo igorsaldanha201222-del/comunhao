@@ -1,3 +1,7 @@
+import {
+  PlusJakartaSans_400Regular, PlusJakartaSans_500Medium, PlusJakartaSans_600SemiBold,
+  PlusJakartaSans_700Bold, PlusJakartaSans_800ExtraBold, useFonts,
+} from '@expo-google-fonts/plus-jakarta-sans';
 import { Stack, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -26,7 +30,13 @@ function openPendingPath() {
 }
 
 function RootNavigator() {
-  const { loading, session, church } = useSession();
+  const { loading: sessionLoading, session, church } = useSession();
+  const [fontsLoaded, fontError] = useFonts({
+    PlusJakartaSans_400Regular, PlusJakartaSans_500Medium, PlusJakartaSans_600SemiBold,
+    PlusJakartaSans_700Bold, PlusJakartaSans_800ExtraBold,
+  });
+  // Sem a fonte (erro de rede), segue com a do sistema em vez de travar na abertura.
+  const loading = sessionLoading || (!fontsLoaded && !fontError);
 
   useEffect(() => {
     if (!loading) SplashScreen.hideAsync();

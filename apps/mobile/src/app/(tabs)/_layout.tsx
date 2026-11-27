@@ -1,7 +1,10 @@
 import { Tabs } from 'expo-router';
 import { NativeTabs } from 'expo-router/native-tabs';
 import { useEffect } from 'react';
-import { Platform, Text } from 'react-native';
+import { Calendar, HeartHandshake, House, User, Users, type LucideIcon } from 'lucide-react-native';
+import { Platform } from 'react-native';
+
+import { C, F } from '@/components/ui';
 
 import { registerPush } from '@/lib/push';
 import { useChurch } from '@/lib/session';
@@ -15,16 +18,20 @@ export default function TabsLayout() {
 
   // No navegador (app instalado na tela inicial): barra de abas embaixo, como num app.
   if (Platform.OS === 'web') {
-    const icon = (e: string) => function TabIcon({ focused }: { focused: boolean }) {
-      return <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.55 }}>{e}</Text>;
+    const icon = (Icon: LucideIcon) => function TabIcon({ color: c, focused }: { color: unknown; focused: boolean }) {
+      return <Icon size={24} color={String(c)} strokeWidth={focused ? 2.2 : 1.8} />;
     };
     return (
-      <Tabs screenOptions={{ headerShown: false, tabBarActiveTintColor: color, tabBarStyle: { height: 64, paddingBottom: 8 } }}>
-        <Tabs.Screen name="index" options={{ title: 'Início', tabBarIcon: icon('🏠') }} />
-        <Tabs.Screen name="agenda" options={{ title: 'Agenda', tabBarIcon: icon('📅') }} />
-        <Tabs.Screen name="escalas" options={{ title: 'Escalas', tabBarIcon: icon('👥') }} />
-        <Tabs.Screen name="contribuir" options={{ title: 'Contribuir', tabBarIcon: icon('💝') }} />
-        <Tabs.Screen name="perfil" options={{ title: 'Perfil', tabBarIcon: icon('👤') }} />
+      <Tabs screenOptions={{
+        headerShown: false, tabBarActiveTintColor: color, tabBarInactiveTintColor: '#6b766f',
+        tabBarStyle: { height: 68, paddingBottom: 10, paddingTop: 6, borderTopColor: C.border, backgroundColor: '#fff' },
+        tabBarLabelStyle: { fontFamily: F.semibold, fontSize: 11 },
+      }}>
+        <Tabs.Screen name="index" options={{ title: 'Início', tabBarIcon: icon(House) }} />
+        <Tabs.Screen name="agenda" options={{ title: 'Agenda', tabBarIcon: icon(Calendar) }} />
+        <Tabs.Screen name="escalas" options={{ title: 'Escalas', tabBarIcon: icon(Users) }} />
+        <Tabs.Screen name="contribuir" options={{ title: 'Contribuir', tabBarIcon: icon(HeartHandshake) }} />
+        <Tabs.Screen name="perfil" options={{ title: 'Perfil', tabBarIcon: icon(User) }} />
       </Tabs>
     );
   }
