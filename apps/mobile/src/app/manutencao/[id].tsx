@@ -4,7 +4,8 @@ import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Alert, ScrollView, Text, View } from 'react-native';
 
-import { Button, C, Card, Chips, H2, Input, Muted, Screen, fmtDateTime } from '@/components/ui';
+import { brToISO, DeleteButton, isoToBR } from '@/components/admin';
+import { Button, C, Card, Chips, H2, Input, Muted, Screen, fmtBRL, fmtDateTime } from '@/components/ui';
 import { STATUS, statusOf, uploadPhoto, useMaintAccess, type MaintStatus } from '@/lib/maintenance';
 import { useChurch } from '@/lib/session';
 import { supabase } from '@/lib/supabase';
@@ -14,7 +15,7 @@ type Detail = {
   req: {
     id: string; number: number; title: string; description: string | null; location: string | null; priority: string;
     status: MaintStatus; photos: string[]; assigned_to: string | null; requested_by: string | null; resolution: string | null;
-    due_date: string | null; created_at: string;
+    due_date: string | null; created_at: string; cost_cents: number | null;
   } | null;
   updates: { id: string; user_id: string | null; kind: string; body: string | null; photo_path: string | null; created_at: string }[];
   names: Record<string, string>;
@@ -107,6 +108,9 @@ export default function Chamado() {
         </Card>
       )}
 
+      {access.manage && <Manage key={`${r.id}:${r.priority}:${r.assigned_to}:${r.due_date}:${r.cost_cents}:${r.resolution}`} r={r} churchId={church.id} color={color} onSaved={reload} />}
+      {r.cost_cents != null && !access.manage ? <Muted>Custo: {fmtBRL(Number(r.cost_cents))}</Muted> : null}
+
       <Card>
         <H2>Andamento</H2>
         {data.updates.map((u) => (
@@ -125,5 +129,52 @@ export default function Chamado() {
         </View>
       </Card>
     </Screen>
+  );
+}
+
+const PRIORITIES = [{ value: 'baixa', label: 'Baixa' }, { value: 'normal', label: 'Normal' }, { value: 'alta', label: 'Alta' }, { value: 'urgente', label: 'Urgente' }];
+
+/** Quem cuida da manutenção: prioridade, responsável, prazo, custo, solução e apagar. */
+function Manage({ r, churchId, color, onSaved }: { r: NonNullable<Detail['req']>; churchId: string; color: string; onSaved: () => void }) {
+  const [priority, setPriority] = useState(r.priority);
+  const [assigned, setAssigned] = useState(r.assigned_to ?? '');
+  const [due, setDue] = useState(isoToBR(r.due_date));
+  const [cost, setCost] = useState(r.cost_cents != null ? (Number(r.cost_cents) / 100).toFixed(2).replace('.', ',') : '');
+  const [resolution, setResolution] = useState(r.resolution ?? '');
+  const [busy, setBusy] = useState(false);
+  const { data: team } = useData(async () => {
+    const { data: rows } = await supabase.rpc('maintenance_people', { p_church: churchId });
+    return ((rows ?? []) as { user_id: string; full_name: string; can_manage: boolean }[]).filter((x) => x.can_manage || x.user_id === r.assigned_to);
+  }, [] as { user_id: string; full_name: string; can_manage: boolean }[], `mteam:${churchId}`);
+  async function save() {
+    if (due.trim() && !brToISO(due)) return Alert.alert('Prazo', 'Use dd/mm/aaaa.');
+    const c = cost.trim() ? Math.round(Number(cost.replace(/\./g, '').replace(',', '.')) * 100) : null;
+    if (c !== null && (!Number.isFinite(c) || c < 0)) return Alert.alert('Custo', 'Digite um valor, ex.: 150,00');
+    setBusy(true);
+    const { error } = await supabase.from('maintenance_requests').update({
+      priority, assigned_to: assigned || null, due_date: due.trim() ? brToISO(due) : null, cost_cents: c, resolution: resolution.trim() || null,
+    }).eq('id', r.id);
+    setBusy(false);
+    if (error) return Alert.alert('Não deu', error.message);
+    Alert.alert('Salvo', 'Chamado atualizado.'); onSaved();
+  }
+  return (
+    <>
+      <Card>
+        <H2>Gerenciar</H2>
+        <Muted>Prioridade</Muted>
+        <Chips color={color} value={priority} onChange={setPriority} options={PRIORITIES} />
+        <Muted>Responsável</Muted>
+        <Chips color={color} value={assigned} onChange={setAssigned}
+          options={[{ value: '', label: 'Ninguém' }, ...team.map((x) => ({ value: x.user_id, label: x.full_name.split(' ').slice(0, 2).join(' ') }))]} />
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          <View style={{ flex: 1 }}><Input label="Prazo" value={due} onChangeText={setDue} placeholder="dd/mm/aaaa" /></View>
+          <View style={{ flex: 1 }}><Input label="Custo (R$)" value={cost} onChangeText={setCost} keyboardType="decimal-pad" placeholder="0,00" /></View>
+        </View>
+        <Input label="Solução / como ficou" value={resolution} onChangeText={setResolution} multiline />
+        <Button title="Salvar" color={color} loading={busy} onPress={save} />
+      </Card>
+      <DeleteButton what="chamado" fallback="/manutencao" onDelete={async () => supabase.from('maintenance_requests').delete().eq('id', r.id)} />
+    </>
   );
 }

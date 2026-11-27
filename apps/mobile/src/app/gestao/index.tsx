@@ -1,6 +1,6 @@
 import { Stack, router, type Href } from 'expo-router';
 import {
-  Baby, CalendarDays, Church, ClipboardCheck, Clock, Contact, Footprints, HandHeart, Image as ImageIcon, Layers, Megaphone, Mic, Radio,
+  Activity, Baby, CalendarDays, Church, ClipboardCheck, Clock, Contact, Footprints, HandHeart, Image as ImageIcon, Layers, Megaphone, Mic, Radio,
   Briefcase, Building2, Cpu, Gift, ShieldCheck, Sun, Sunrise, TrendingUp, Users, Wrench, type LucideIcon,
 } from 'lucide-react-native';
 import { Text, View } from 'react-native';
@@ -16,6 +16,7 @@ const GROUPS: [string, Item[]][] = [
     { icon: Contact, label: 'Pessoas', sub: 'Membros e visitantes', href: '/pessoas', who: 'staff' },
     { icon: Users, label: 'Visitantes', sub: 'Quem chegou e o contato', href: '/visitantes', who: 'staff' },
     { icon: Footprints, label: 'Novos membros', sub: 'Trilha: conversa, NCC, apresentação', href: '/gestao/membresia', who: 'staff' },
+    { icon: Activity, label: 'Engajamento', sub: 'Quem serve, participa, contribui', href: '/gestao/engajamento', who: 'staff' },
     { icon: HandHeart, label: 'Pedidos de oração', sub: 'Orar e marcar', href: '/gestao/oracoes', who: 'staff' },
   ]],
   ['Cultos e ministérios', [
@@ -38,7 +39,7 @@ const GROUPS: [string, Item[]][] = [
     { icon: Clock, label: 'Quem está trabalhando', sub: 'Ponto da equipe', href: '/equipe', who: 'staff' },
   ]],
   ['Igreja', [
-    { icon: Baby, label: 'Kids', sub: 'Crianças e check-in', href: '/kids', who: 'staff' },
+    { icon: Baby, label: 'Kids', sub: 'Entrada, crianças, turmas, aulas', href: '/gestao/kids', who: 'staff' },
     { icon: Wrench, label: 'Manutenção', sub: 'Chamados', href: '/manutencao', who: 'staff' },
     { icon: Sun, label: 'Energia solar', sub: 'Geração e alertas', href: '/energia', who: 'staff' },
     { icon: Cpu, label: 'Aparelhos de energia', sub: 'Cadastrar inversor e token', href: '/gestao/solar', who: 'admin' },
