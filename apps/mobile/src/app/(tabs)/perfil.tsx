@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Switch, Text, View } from 'react-native';
 
+import { AppInstallCard } from '@/components/app-install';
 import { Button, C, Card, Chips, H2, Input, Muted, Screen, fmtDateTime } from '@/components/ui';
 import { useMaintAccess } from '@/lib/maintenance';
 import { useChurch, useSession } from '@/lib/session';
@@ -41,6 +42,7 @@ export default function Perfil() {
 
   return (
     <Screen title="Perfil" subtitle={`${name} · ${church.name}`} color={color}>
+      <AppInstallCard showDone />
       <Card>
         <H2>🧸 Kids</H2>
         <Muted>Cadastre seus filhos, faça o check-in pelo celular e veja as aulas e atividades.</Muted>

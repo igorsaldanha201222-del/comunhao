@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
 import { SessionProvider, useSession } from '@/lib/session';
+import '@/lib/webapp'; // no navegador: registra o service worker e a instalação o quanto antes
 
 SplashScreen.preventAutoHideAsync();
 

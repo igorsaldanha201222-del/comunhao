@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
+import { AppInstallCard } from '@/components/app-install';
 import { Button, Card, Empty, H2, Muted, Screen, fmtDateTime } from '@/components/ui';
 import { level, loadJourney, maxXp, stepsDone, xp } from '@/lib/journey';
 import { useChurch } from '@/lib/session';
@@ -42,6 +43,8 @@ export default function Inicio() {
           ))}
         </ScrollView>
       )}
+
+      <AppInstallCard />
 
       {!trail.isMember && !tj && (
         <Card style={{ borderColor: color, borderWidth: 2 }}>

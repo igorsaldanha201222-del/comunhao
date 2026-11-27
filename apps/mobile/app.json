@@ -23,7 +23,10 @@
     },
     "web": {
       "output": "single",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./public/favicon.png",
+      "name": "Comunhão",
+      "shortName": "Comunhão",
+      "themeColor": "#4f46e5"
     },
     "plugins": [
       "expo-router",
@@ -52,7 +55,8 @@
     ],
     "experiments": {
       "typedRoutes": true,
-      "reactCompiler": true
+      "reactCompiler": true,
+      "baseUrl": "/app"
     },
     "extra": {
       "eas": {

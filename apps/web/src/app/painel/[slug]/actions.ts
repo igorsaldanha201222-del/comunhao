@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { requireStaff } from "@/lib/auth";
 import { fromLocalInput, parseMoney } from "@/lib/format";
 import type { ActionResult } from "@/components/form";
+import { dispatchNotification } from "@/lib/push-send";
 
 type Ctx = Awaited<ReturnType<typeof requireStaff>>;
 
@@ -105,11 +106,14 @@ export async function createNotification(_: ActionResult, f: FormData): Promise<
     church_id: c.church.id, title: req(f, "title"), body: req(f, "body"), link_url: s(f, "link_url"), created_by: c.user.id,
   }).select("id").single();
   if (error) return { error: error.message };
-  const { data: sent, error: fnErr } = await c.supabase.functions.invoke("send-notification", {
-    body: { notification_id: data.id },
-  });
-  if (fnErr) return { error: "Salva, mas o envio falhou: " + fnErr.message };
-  return done(c, "/notificacoes", `Enviada para ${sent?.sent ?? 0} aparelho(s).`);
+  try {
+    const r = await dispatchNotification(c.supabase, data.id, {
+      title: req(f, "title"), body: req(f, "body"), url: s(f, "link_url") ?? "/app/",
+    });
+    return done(c, "/notificacoes", r.total ? `Enviada para ${r.sent} de ${r.total} aparelho(s).` : "Salva. Ainda nenhum celular ativou as notificações no app.");
+  } catch (e) {
+    return { error: "Salva, mas o envio falhou: " + (e as Error).message };
+  }
 }
 
 // ------------------------------------------------------------------ Eventos
