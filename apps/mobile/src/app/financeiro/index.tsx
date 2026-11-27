@@ -9,7 +9,7 @@ import { useChurch } from '@/lib/session';
 import { supabase } from '@/lib/supabase';
 import { useData } from '@/lib/use-data';
 
-const EMPTY = { ok: true, accounts: [], total: 0, income: 0, expense: 0, due: [], last: [], categories: [], today: '' };
+const EMPTY = { ok: true, accounts: [], total: 0, income: 0, expense: 0, due: [], incoming: [], last: [], categories: [], today: '' };
 
 export default function Financeiro() {
   const { church, color, user } = useChurch();
@@ -23,6 +23,21 @@ ${fmtBRL(Number(e.amount_cents))} · pago hoje`, [
       {
         text: 'Paguei', onPress: async () => {
           const { error } = await supabase.from('finance_entries').update({ status: 'pago', entry_date: data.today, updated_by: user.id }).eq('id', e.id);
+          if (error) Alert.alert('Não deu para salvar', error.message); else refresh();
+        },
+      },
+    ]);
+  }
+
+  function confirmIn(e: Entry) {
+    Alert.alert('Confirmar entrada?', `${e.description}
+${fmtBRL(Number(e.amount_cents))}
+
+Confira se o valor caiu no extrato do banco.`, [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Caiu na conta', onPress: async () => {
+          const { error } = await supabase.from('finance_entries').update({ status: 'pago', updated_by: user.id }).eq('id', e.id);
           if (error) Alert.alert('Não deu para salvar', error.message); else refresh();
         },
       },
@@ -48,6 +63,14 @@ ${fmtBRL(Number(e.amount_cents))} · pago hoje`, [
         <BigButton label="Lançar entrada" solid color={color} onPress={() => router.push({ pathname: '/financeiro/novo', params: { tipo: 'entrada' } })} />
         <BigButton label="Lançar saída" color={color} onPress={() => router.push({ pathname: '/financeiro/novo', params: { tipo: 'saida' } })} />
       </View>
+
+      {data.incoming.length > 0 && (
+        <Section title="Pix para conferir">
+          <Card style={{ padding: 0, gap: 0 }}>
+            {data.incoming.map((e, i) => <Row key={e.id} e={e} first={i === 0} today={data.today} onPay={() => confirmIn(e)} payLabel="Confirmar" />)}
+          </Card>
+        </Section>
+      )}
 
       <Section title="Contas a pagar">
         {data.due.length === 0 ? <Empty>Nada vencendo nos próximos 15 dias.</Empty> : (
@@ -108,7 +131,7 @@ function BigButton({ label, solid, color, onPress }: { label: string; solid?: bo
   );
 }
 
-function Row({ e, first, due, today, onPay }: { e: Entry; first: boolean; due?: boolean; today: string; onPay?: () => void }) {
+function Row({ e, first, due, today, onPay, payLabel = 'Marcar pago' }: { e: Entry; first: boolean; due?: boolean; today: string; onPay?: () => void; payLabel?: string }) {
   const inc = e.type === 'entrada';
   const late = due && e.due_date && e.due_date < today;
   const date = due ? e.due_date ?? e.entry_date : e.entry_date;
@@ -128,7 +151,7 @@ function Row({ e, first, due, today, onPay }: { e: Entry; first: boolean; due?: 
         <Text style={{ fontFamily: F.bold, fontSize: 14, color: due ? C.text : inc ? C.ok : C.danger }}>{inc ? '+' : '−'} {fmtBRL(Number(e.amount_cents))}</Text>
         {onPay && (
           <Pressable onPress={onPay} accessibilityRole="button" hitSlop={8}>
-            <Text style={{ fontFamily: F.bold, fontSize: 12, color: C.ok }}>Marcar pago</Text>
+            <Text style={{ fontFamily: F.bold, fontSize: 12, color: C.ok }}>{payLabel}</Text>
           </Pressable>
         )}
       </View>

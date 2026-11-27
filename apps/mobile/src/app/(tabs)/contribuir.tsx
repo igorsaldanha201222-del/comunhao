@@ -1,10 +1,11 @@
 import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
 import * as WebBrowser from 'expo-web-browser';
-import { Copy, HeartHandshake, ShieldCheck } from 'lucide-react-native';
+import { HeartHandshake, ShieldCheck } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 
+import { PixGive } from '@/components/pix-give';
 import { Button, C, Card, Chips, F, Input, Muted, Screen } from '@/components/ui';
 import { useChurch } from '@/lib/session';
 import { fnError, supabase } from '@/lib/supabase';
@@ -65,18 +66,7 @@ export default function Contribuir() {
       <Screen title="Contribuir" color={color}>
         {hero}
         {cfg.pixKey ? (
-          <Card style={{ gap: 12 }}>
-            <Text style={{ fontFamily: F.bold, fontSize: 17, color: C.text }}>Pix da igreja</Text>
-            <Muted>Abra o app do seu banco, escolha Pix → Pagar com chave e cole a chave abaixo.</Muted>
-            <Pressable onPress={async () => { await Clipboard.setStringAsync(cfg.pixKey!); Alert.alert('Chave Pix copiada!', 'Agora é só colar no app do seu banco.'); }}
-              accessibilityRole="button" accessibilityLabel="Copiar chave Pix"
-              style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.tint, borderRadius: 16, padding: 16, opacity: pressed ? 0.8 : 1 })}>
-              <Text selectable style={{ flex: 1, fontFamily: F.bold, fontSize: 17, color: C.text }}>{cfg.pixKey}</Text>
-              <Copy size={20} color={color} />
-            </Pressable>
-            <Button title="Copiar chave Pix" color={color} onPress={async () => { await Clipboard.setStringAsync(cfg.pixKey!); Alert.alert('Chave Pix copiada!', 'Agora é só colar no app do seu banco.'); }} />
-            <Muted>Que Deus abençoe a sua generosidade.</Muted>
-          </Card>
+          <PixGive funds={funds} />
         ) : (
           <Card>
             <Text style={{ fontFamily: F.bold, fontSize: 17, color: C.text }}>Contribuições pelo app em breve</Text>

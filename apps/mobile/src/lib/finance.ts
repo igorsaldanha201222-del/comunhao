@@ -19,7 +19,7 @@ export async function loadFinance(churchId: string) {
   const today = todayBR();
   const monthStart = today.slice(0, 8) + '01';
   await supabase.rpc('payroll_generate', { p_church: churchId }); // salários do mês em Contas a pagar
-  const [acc, paid, month, due, last, cats] = await Promise.all([
+  const [acc, paid, month, due, last, cats, incoming] = await Promise.all([
     supabase.from('finance_accounts').select('id, name, kind, opening_cents').eq('church_id', churchId).eq('active', true).order('name'),
     supabase.from('finance_entries').select('account_id, type, amount_cents').eq('church_id', churchId).eq('status', 'pago'),
     supabase.from('finance_entries').select('type, amount_cents').eq('church_id', churchId).eq('status', 'pago').gte('entry_date', monthStart).lte('entry_date', today),
@@ -28,6 +28,8 @@ export async function loadFinance(churchId: string) {
     supabase.from('finance_entries').select('id, type, status, entry_date, due_date, amount_cents, description, category:finance_categories(name)')
       .eq('church_id', churchId).eq('status', 'pago').order('entry_date', { ascending: false }).order('created_at', { ascending: false }).limit(8),
     supabase.from('finance_categories').select('id, name, type').eq('church_id', churchId).eq('active', true).order('name'),
+    supabase.from('finance_entries').select('id, type, status, entry_date, due_date, amount_cents, description, category:finance_categories(name)')
+      .eq('church_id', churchId).eq('status', 'pendente').eq('type', 'entrada').order('entry_date', { ascending: false }).limit(20),
   ]);
   const accounts = (acc.data ?? []) as Account[];
   const balance = new Map(accounts.map((a) => [a.id, Number(a.opening_cents)]));
@@ -44,6 +46,7 @@ export async function loadFinance(churchId: string) {
     total: [...balance.values()].reduce((a, b) => a + b, 0),
     income, expense,
     due: (due.data ?? []) as unknown as Entry[],
+    incoming: (incoming.data ?? []) as unknown as Entry[],
     last: (last.data ?? []) as unknown as Entry[],
     categories: (cats.data ?? []) as Category[],
     today,
