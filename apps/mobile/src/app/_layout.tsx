@@ -19,7 +19,7 @@ let pendingPath: string | null = null;
 if (Platform.OS === 'web' && typeof window !== 'undefined') {
   const entry = (window as Window & { __entryPath?: string }).__entryPath ?? window.location.pathname + window.location.search;
   const path = '/' + entry.replace(/^\/app\/?/, '');
-  if (path && path !== '/' && !/^\/(login|igreja)/.test(path)) pendingPath = path;
+  if (path && path !== '/' && !/^\/(login|igreja|bem-vindo)\b/.test(path)) pendingPath = path;
 }
 
 /** Abre o link de entrada uma única vez (fora do componente: o React Compiler não mexe aqui). */
@@ -50,6 +50,7 @@ function RootNavigator() {
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="bem-vindo" />
       <Stack.Protected guard={!session}>
         <Stack.Screen name="login" />
       </Stack.Protected>
@@ -61,6 +62,8 @@ function RootNavigator() {
         <Stack.Screen name="evento/[id]" options={{ headerShown: true, title: 'Evento', headerBackTitle: 'Voltar' }} />
         <Stack.Screen name="escala/[id]" options={{ headerShown: true, title: 'Escala', headerBackTitle: 'Voltar' }} />
         <Stack.Screen name="presenca" options={{ headerShown: true, title: 'Presença', headerBackTitle: 'Voltar' }} />
+        <Stack.Screen name="visitantes" options={{ headerShown: true, title: 'Visitantes', headerBackTitle: 'Voltar' }} />
+        <Stack.Screen name="qr-entrada" options={{ headerShown: true, title: 'QR Code da entrada', headerBackTitle: 'Voltar' }} />
         <Stack.Screen name="chamada" options={{ headerShown: true, title: 'Chamada do culto', headerBackTitle: 'Voltar' }} />
         <Stack.Screen name="aviso" options={{ headerShown: true, title: 'Enviar aviso', headerBackTitle: 'Voltar', presentation: 'modal' }} />
         <Stack.Screen name="financeiro/index" options={{ headerShown: true, title: 'Financeiro', headerBackTitle: 'Voltar' }} />

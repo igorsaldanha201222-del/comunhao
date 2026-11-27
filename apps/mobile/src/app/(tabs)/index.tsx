@@ -72,11 +72,13 @@ export default function Inicio() {
   const { data: stats } = useData(async () => {
     if (!me.isStaff) return null;
     const monthStart = todayBR().slice(0, 8) + '01';
-    const [v, j] = await Promise.all([
+    const [v, j, nc] = await Promise.all([
       supabase.from('people').select('id', { count: 'exact', head: true }).eq('church_id', church.id).eq('status', 'visitante').gte('created_at', monthStart),
       supabase.from('member_journeys').select('id', { count: 'exact', head: true }).eq('church_id', church.id).neq('step', 'concluido').eq('gave_up', false),
+      supabase.from('people').select('id', { count: 'exact', head: true }).eq('church_id', church.id).eq('status', 'visitante').is('contacted_at', null)
+        .gte('created_at', new Date(Date.now() - 30 * 86_400_000).toISOString()),
     ]);
-    return { visitors: v.count ?? 0, trail: j.count ?? 0 };
+    return { visitors: v.count ?? 0, trail: j.count ?? 0, noContact: nc.count ?? 0 };
   }, null, `stats:${church.id}:${me.isStaff}`);
 
   const tj = trail.journey;
@@ -125,10 +127,13 @@ export default function Inicio() {
       {(me.isStaff || me.canFinance) && (
         <Section title={me.isStaff ? 'Sua igreja hoje' : 'Tesouraria'}>
           {me.isStaff && <View style={{ flexDirection: 'row', gap: 12 }}>
-            <Card style={{ flex: 1, gap: 4 }}>
-              <Text style={{ fontFamily: F.semibold, fontSize: 12, color: C.muted }}>Visitantes no mês</Text>
-              <Text style={{ fontFamily: F.extrabold, fontSize: 28, color: C.text }}>{stats?.visitors ?? '–'}</Text>
-            </Card>
+            <Pressable onPress={() => router.push('/visitantes')} accessibilityRole="button" style={{ flex: 1 }}>
+              <Card style={{ flex: 1, gap: 4 }}>
+                <Text style={{ fontFamily: F.semibold, fontSize: 12, color: C.muted }}>Visitantes no mês</Text>
+                <Text style={{ fontFamily: F.extrabold, fontSize: 28, color: C.text }}>{stats?.visitors ?? '–'}</Text>
+                {stats?.noContact ? <Text style={{ fontFamily: F.semibold, fontSize: 12, color: C.accentText }}>{stats.noContact} sem contato</Text> : null}
+              </Card>
+            </Pressable>
             <Card style={{ flex: 1, gap: 4 }}>
               <Text style={{ fontFamily: F.semibold, fontSize: 12, color: C.muted }}>Na trilha de membro</Text>
               <Text style={{ fontFamily: F.extrabold, fontSize: 28, color: C.text }}>{stats?.trail ?? '–'}</Text>
