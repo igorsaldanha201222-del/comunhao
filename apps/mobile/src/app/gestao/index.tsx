@@ -1,6 +1,6 @@
 import { Stack, router, type Href } from 'expo-router';
 import {
-  Baby, CalendarDays, ClipboardCheck, Clock, Contact, HandHeart, Image as ImageIcon, Layers, Megaphone, Mic, Radio,
+  Baby, CalendarDays, Church, ClipboardCheck, Clock, Contact, Footprints, HandHeart, Image as ImageIcon, Layers, Megaphone, Mic, Radio,
   Sun, Sunrise, TrendingUp, Users, Wrench, type LucideIcon,
 } from 'lucide-react-native';
 import { Text, View } from 'react-native';
@@ -15,9 +15,11 @@ const GROUPS: [string, Item[]][] = [
   ['Pessoas', [
     { icon: Contact, label: 'Pessoas', sub: 'Membros e visitantes', href: '/pessoas', who: 'staff' },
     { icon: Users, label: 'Visitantes', sub: 'Quem chegou e o contato', href: '/visitantes', who: 'staff' },
+    { icon: Footprints, label: 'Novos membros', sub: 'Trilha: conversa, NCC, apresentação', href: '/gestao/membresia', who: 'staff' },
     { icon: HandHeart, label: 'Pedidos de oração', sub: 'Orar e marcar', href: '/gestao/oracoes', who: 'staff' },
   ]],
   ['Cultos e ministérios', [
+    { icon: Church, label: 'Cultos e presença', sub: 'Criar culto, chamada, contagem', href: '/gestao/cultos', who: 'staff' },
     { icon: ClipboardCheck, label: 'Chamada', sub: 'Presença do culto', href: '/chamada', who: 'staff' },
     { icon: Layers, label: 'Ministérios', sub: 'Equipes e líderes', href: '/ministerios', who: 'staff' },
     { icon: Megaphone, label: 'Enviar aviso', sub: 'Notificação no celular', href: '/aviso', who: 'staff' },

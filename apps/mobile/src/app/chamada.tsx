@@ -1,3 +1,4 @@
+import { useLocalSearchParams } from 'expo-router';
 import { Check, MapPin, QrCode, Search, UserPlus } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { Alert, Pressable, Text, TextInput, View } from 'react-native';
@@ -15,9 +16,9 @@ type Svc = { id: string; title: string; confirm_sent_at: string | null };
 type Roll = { svc: Svc | null; people: Person[]; present: Record<string, string>; error: string | null };
 
 /** Culto de hoje + lista de pessoas e quem já está presente. Sem culto hoje, a tela oferece começar um. */
-async function loadRoll(churchId: string): Promise<Roll> {
-  const { data: svc } = await supabase.from('services').select('id, title, confirm_sent_at')
-    .eq('church_id', churchId).eq('service_date', todayBR()).order('created_at').limit(1).maybeSingle();
+async function loadRoll(churchId: string, serviceId?: string): Promise<Roll> {
+  const base = supabase.from('services').select('id, title, confirm_sent_at').eq('church_id', churchId);
+  const { data: svc } = await (serviceId ? base.eq('id', serviceId) : base.eq('service_date', todayBR()).order('created_at').limit(1)).maybeSingle();
   if (!svc) return { svc: null, people: [], present: {}, error: null };
   const [p, a] = await Promise.all([
     supabase.rpc('attendance_people', { p_church: churchId }),
@@ -34,8 +35,9 @@ async function loadRoll(churchId: string): Promise<Roll> {
 export default function Chamada() {
   const { church, color, user } = useChurch();
   const me = useMe();
-  const { data, setData, refresh, refreshing } = useData(() => loadRoll(church.id),
-    { svc: null, people: [], present: {}, error: null } as Roll, `roll:${church.id}`);
+  const { s: serviceId } = useLocalSearchParams<{ s?: string }>();
+  const { data, setData, refresh, refreshing } = useData(() => loadRoll(church.id, serviceId),
+    { svc: null, people: [], present: {}, error: null } as Roll, `roll:${church.id}:${serviceId ?? ''}`);
   const [q, setQ] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
