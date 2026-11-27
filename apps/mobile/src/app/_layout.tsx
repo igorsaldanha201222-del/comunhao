@@ -83,6 +83,8 @@ function RootNavigator() {
         <Stack.Screen name="aviso" options={{ headerShown: true, title: 'Enviar aviso', headerBackTitle: 'Voltar', presentation: 'modal' }} />
         <Stack.Screen name="financeiro/index" options={{ headerShown: true, title: 'Financeiro', headerBackTitle: 'Voltar' }} />
         <Stack.Screen name="financeiro/novo" options={{ headerShown: true, title: 'Novo lançamento', headerBackTitle: 'Voltar', presentation: 'modal' }} />
+        <Stack.Screen name="financeiro/relatorio" options={{ headerShown: true, title: 'Relatório do mês', headerBackTitle: 'Voltar' }} />
+        <Stack.Screen name="financeiro/cadastros" options={{ headerShown: true, title: 'Categorias e contas', headerBackTitle: 'Voltar' }} />
         <Stack.Screen name="membro/index" options={{ headerShown: true, title: 'Quero ser membro', headerBackTitle: 'Voltar' }} />
         <Stack.Screen name="kids/index" options={{ headerShown: true, title: 'Kids', headerBackTitle: 'Voltar' }} />
         <Stack.Screen name="kids/novo" options={{ headerShown: true, title: 'Cadastrar filho', headerBackTitle: 'Voltar', presentation: 'modal' }} />

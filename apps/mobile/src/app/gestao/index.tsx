@@ -1,7 +1,7 @@
 import { Stack, router, type Href } from 'expo-router';
 import {
   Baby, CalendarDays, Church, ClipboardCheck, Clock, Contact, Footprints, HandHeart, Image as ImageIcon, Layers, Megaphone, Mic, Radio,
-  Building2, Cpu, ShieldCheck, Sun, Sunrise, TrendingUp, Users, Wrench, type LucideIcon,
+  Briefcase, Building2, Cpu, Gift, ShieldCheck, Sun, Sunrise, TrendingUp, Users, Wrench, type LucideIcon,
 } from 'lucide-react-native';
 import { Text, View } from 'react-native';
 
@@ -33,6 +33,8 @@ const GROUPS: [string, Item[]][] = [
   ]],
   ['Finanças e equipe', [
     { icon: TrendingUp, label: 'Financeiro', sub: 'Saldo, lançamentos, contas', href: '/financeiro', who: 'finance' },
+    { icon: Gift, label: 'Doações', sub: 'Recebido pelo app', href: '/gestao/doacoes', who: 'finance' },
+    { icon: Briefcase, label: 'Funcionários', sub: 'Cadastro, salário e ponto', href: '/gestao/funcionarios', who: 'finance' },
     { icon: Clock, label: 'Quem está trabalhando', sub: 'Ponto da equipe', href: '/equipe', who: 'staff' },
   ]],
   ['Igreja', [

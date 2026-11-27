@@ -1,9 +1,10 @@
 import { router, useFocusEffect } from 'expo-router';
-import { ArrowDownLeft, ArrowUpRight, CalendarClock, Plus } from 'lucide-react-native';
+import { ArrowDownLeft, ArrowUpRight, BarChart3, CalendarClock, Plus, Settings2 } from 'lucide-react-native';
 import { useCallback } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 
-import { C, Card, Empty, F, Muted, Screen, Section, fmtBRL } from '@/components/ui';
+import { HubItem } from '@/components/admin';
+import { C, Card, Empty, F, Screen, Section, fmtBRL } from '@/components/ui';
 import { type Entry, fmtDay, loadFinance } from '@/lib/finance';
 import { useChurch } from '@/lib/session';
 import { supabase } from '@/lib/supabase';
@@ -15,6 +16,8 @@ export default function Financeiro() {
   const { church, color, user } = useChurch();
   const { data, refresh, refreshing } = useData(() => loadFinance(church.id), EMPTY as Awaited<ReturnType<typeof loadFinance>>, `fin:${church.id}`);
   useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
+
+  const openEntry = (e: Entry) => router.push({ pathname: '/financeiro/novo', params: { id: e.id } });
 
   function pay(e: Entry) {
     Alert.alert('Marcar como pago?', `${e.description}
@@ -64,10 +67,15 @@ Confira se o valor caiu no extrato do banco.`, [
         <BigButton label="Lançar saída" color={color} onPress={() => router.push({ pathname: '/financeiro/novo', params: { tipo: 'saida' } })} />
       </View>
 
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+        <HubItem icon={BarChart3} label="Relatório do mês" sub="Lançamentos por categoria" color={color} onPress={() => router.push('/financeiro/relatorio')} />
+        <HubItem icon={Settings2} label="Categorias e contas" sub="Cadastrar e ajustar" color={color} onPress={() => router.push('/financeiro/cadastros')} />
+      </View>
+
       {data.incoming.length > 0 && (
         <Section title="Pix para conferir">
           <Card style={{ padding: 0, gap: 0 }}>
-            {data.incoming.map((e, i) => <Row key={e.id} e={e} first={i === 0} today={data.today} onPay={() => confirmIn(e)} payLabel="Confirmar" />)}
+            {data.incoming.map((e, i) => <Row key={e.id} e={e} first={i === 0} today={data.today} onPay={() => confirmIn(e)} payLabel="Confirmar" onOpen={() => openEntry(e)} />)}
           </Card>
         </Section>
       )}
@@ -75,7 +83,7 @@ Confira se o valor caiu no extrato do banco.`, [
       <Section title="Contas a pagar">
         {data.due.length === 0 ? <Empty>Nada vencendo nos próximos 15 dias.</Empty> : (
           <Card style={{ padding: 0, gap: 0 }}>
-            {data.due.map((e, i) => <Row key={e.id} e={e} first={i === 0} due today={data.today} onPay={() => pay(e)} />)}
+            {data.due.map((e, i) => <Row key={e.id} e={e} first={i === 0} due today={data.today} onPay={() => pay(e)} onOpen={() => openEntry(e)} />)}
           </Card>
         )}
       </Section>
@@ -83,7 +91,7 @@ Confira se o valor caiu no extrato do banco.`, [
       <Section title="Últimos lançamentos">
         {data.last.length === 0 ? <Empty>Nenhum lançamento ainda.</Empty> : (
           <Card style={{ padding: 0, gap: 0 }}>
-            {data.last.map((e, i) => <Row key={e.id} e={e} first={i === 0} today={data.today} />)}
+            {data.last.map((e, i) => <Row key={e.id} e={e} first={i === 0} today={data.today} onOpen={() => openEntry(e)} />)}
           </Card>
         )}
       </Section>
@@ -98,7 +106,6 @@ Confira se o valor caiu no extrato do banco.`, [
               </View>
             ))}
           </Card>
-          <Muted>Relatórios, edição e exportação ficam no painel do computador.</Muted>
         </Section>
       )}
     </Screen>
@@ -131,12 +138,12 @@ function BigButton({ label, solid, color, onPress }: { label: string; solid?: bo
   );
 }
 
-function Row({ e, first, due, today, onPay, payLabel = 'Marcar pago' }: { e: Entry; first: boolean; due?: boolean; today: string; onPay?: () => void; payLabel?: string }) {
+function Row({ e, first, due, today, onPay, onOpen, payLabel = 'Marcar pago' }: { e: Entry; first: boolean; due?: boolean; today: string; onPay?: () => void; onOpen?: () => void; payLabel?: string }) {
   const inc = e.type === 'entrada';
   const late = due && e.due_date && e.due_date < today;
   const date = due ? e.due_date ?? e.entry_date : e.entry_date;
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 13, borderTopWidth: first ? 0 : 1, borderTopColor: '#eef1ed' }}>
+    <Pressable onPress={onOpen} disabled={!onOpen} accessibilityRole={onOpen ? 'button' : undefined} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 13, borderTopWidth: first ? 0 : 1, borderTopColor: '#eef1ed' }}>
       <View style={{ width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: due ? C.accentTint : inc ? C.tint : '#f6ecec' }}>
         {due ? <CalendarClock size={18} color={C.accentText} strokeWidth={2} />
           : inc ? <ArrowDownLeft size={18} color={C.ok} strokeWidth={2.2} /> : <ArrowUpRight size={18} color={C.danger} strokeWidth={2.2} />}
@@ -155,6 +162,6 @@ function Row({ e, first, due, today, onPay, payLabel = 'Marcar pago' }: { e: Ent
           </Pressable>
         )}
       </View>
-    </View>
+    </Pressable>
   );
 }

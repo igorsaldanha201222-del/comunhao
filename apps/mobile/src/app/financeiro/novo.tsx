@@ -1,10 +1,11 @@
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
-import { router, useLocalSearchParams } from 'expo-router';
+import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { Camera, ImageIcon, X } from 'lucide-react-native';
 import { useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 
+import { DeleteButton } from '@/components/admin';
 import { Button, C, Card, Chips, F, Input, Muted, Screen } from '@/components/ui';
 import { type EntryType, loadFinance, todayBR, uploadReceipt } from '@/lib/finance';
 import { useChurch } from '@/lib/session';
@@ -23,17 +24,51 @@ const toCents = (v: string) => {
   return Number.isFinite(n) ? Math.round(n * 100) : 0;
 };
 
+type Initial = {
+  id?: string; type: EntryType; amount: string; description: string; category: string; account: string; method: string;
+  paid: 'pago' | 'pendente'; date: string; counterparty: string;
+};
+const brDate = (iso: string) => iso.split('-').reverse().join('/');
+
+/** Novo lançamento, ou edição quando vem ?id=. */
 export default function NovoLancamento() {
+  const params = useLocalSearchParams<{ tipo?: string; id?: string }>();
+  const { data: row } = useData(async () => {
+    if (!params.id) return null;
+    const { data: e } = await supabase.from('finance_entries')
+      .select('id, type, status, entry_date, due_date, amount_cents, description, category_id, account_id, payment_method, counterparty').eq('id', params.id).maybeSingle();
+    return e;
+  }, null, `fin-edit:${params.id ?? ''}`);
+  if (params.id) {
+    if (!row) return <Screen><Muted>Carregando…</Muted></Screen>;
+    return (
+      <Form initial={{
+        id: row.id, type: row.type, amount: (Number(row.amount_cents) / 100).toFixed(2).replace('.', ','), description: row.description,
+        category: row.category_id ?? '', account: row.account_id ?? '', method: row.payment_method ?? 'pix', paid: row.status,
+        date: brDate(row.status === 'pendente' ? row.due_date ?? row.entry_date : row.entry_date), counterparty: row.counterparty ?? '',
+      }} />
+    );
+  }
+  return (
+    <Form initial={{
+      type: params.tipo === 'saida' ? 'saida' : 'entrada', amount: '', description: '', category: '', account: '', method: 'pix',
+      paid: 'pago', date: brDate(todayBR()), counterparty: '',
+    }} />
+  );
+}
+
+function Form({ initial }: { initial: Initial }) {
   const { church, color, user } = useChurch();
-  const params = useLocalSearchParams<{ tipo?: string }>();
-  const [type, setType] = useState<EntryType>(params.tipo === 'saida' ? 'saida' : 'entrada');
-  const [amount, setAmount] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
-  const [account, setAccount] = useState('');
-  const [method, setMethod] = useState<string>('pix');
-  const [paid, setPaid] = useState<'pago' | 'pendente'>('pago');
-  const [date, setDate] = useState(todayBR().split('-').reverse().join('/'));
+  const editing = !!initial.id;
+  const [type, setType] = useState<EntryType>(initial.type);
+  const [amount, setAmount] = useState(initial.amount);
+  const [description, setDescription] = useState(initial.description);
+  const [category, setCategory] = useState(initial.category);
+  const [account, setAccount] = useState(initial.account);
+  const [method, setMethod] = useState<string>(initial.method);
+  const [paid, setPaid] = useState<'pago' | 'pendente'>(initial.paid);
+  const [date, setDate] = useState(initial.date);
+  const [counterparty, setCounterparty] = useState(initial.counterparty);
   const [photo, setPhoto] = useState<{ uri: string; mime: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -60,17 +95,19 @@ export default function NovoLancamento() {
     setBusy(true);
     try {
       const attachment_path = photo ? await uploadReceipt(church.id, photo.uri, photo.mime) : null;
-      const { error } = await supabase.from('finance_entries').insert({
-        church_id: church.id, type, status: paid, amount_cents: cents, description: description.trim(),
+      const row: Record<string, unknown> = {
+        type, status: paid, amount_cents: cents, description: description.trim(),
         entry_date: iso, due_date: paid === 'pendente' ? iso : null,
         category_id: category || null, account_id: accountId || null,
-        payment_method: paid === 'pago' ? method : null,
-        document_type: photo ? (type === 'entrada' ? 'recibo' : 'nota_fiscal') : null,
-        attachment_path, created_by: user.id, updated_by: user.id,
-      });
+        payment_method: paid === 'pago' ? method : null, counterparty: counterparty.trim() || null, updated_by: user.id,
+      };
+      if (attachment_path) { row.attachment_path = attachment_path; row.document_type = type === 'entrada' ? 'recibo' : 'nota_fiscal'; }
+      const { error } = editing
+        ? await supabase.from('finance_entries').update(row).eq('id', initial.id!)
+        : await supabase.from('finance_entries').insert({ ...row, church_id: church.id, created_by: user.id });
       if (error) throw error;
-      Alert.alert('Lançado ✅', `${type === 'entrada' ? 'Entrada' : 'Saída'} registrada no financeiro.`);
-      router.back();
+      Alert.alert(editing ? 'Salvo ✅' : 'Lançado ✅', editing ? 'Lançamento atualizado.' : `${type === 'entrada' ? 'Entrada' : 'Saída'} registrada no financeiro.`);
+      if (router.canGoBack()) router.back(); else router.replace('/financeiro');
     } catch (e) {
       Alert.alert('Não deu para salvar', (e as Error).message);
     } finally {
@@ -80,6 +117,7 @@ export default function NovoLancamento() {
 
   return (
     <Screen color={color}>
+      {editing && <Stack.Screen options={{ title: 'Editar lançamento' }} />}
       <Chips color={type === 'entrada' ? color : C.danger} value={type} onChange={(v) => { setType(v); setCategory(''); }}
         options={[{ value: 'entrada', label: 'Entrada' }, { value: 'saida', label: 'Saída' }]} />
 
@@ -92,14 +130,15 @@ export default function NovoLancamento() {
         </View>
         <Input label="Descrição" value={description} onChangeText={setDescription} maxLength={140}
           placeholder={type === 'entrada' ? 'ex.: Dízimos do culto de domingo' : 'ex.: Conta de energia de novembro'} />
+        <Input label={type === 'entrada' ? 'De quem (opcional)' : 'Para quem / fornecedor (opcional)'} value={counterparty} onChangeText={setCounterparty} maxLength={120} />
         <Input label={paid === 'pago' ? 'Data' : 'Vencimento'} value={date} onChangeText={setDate} placeholder="dd/mm/aaaa" keyboardType="numbers-and-punctuation" maxLength={10} />
       </Card>
 
-      {type === 'saida' && (
+      {(type === 'saida' || editing) && (
         <Card>
           <Text style={{ fontFamily: F.semibold, fontSize: 13, color: C.body }}>Situação</Text>
           <Chips color={color} value={paid} onChange={setPaid}
-            options={[{ value: 'pago', label: 'Já paguei' }, { value: 'pendente', label: 'A pagar' }]} />
+            options={type === 'entrada' ? [{ value: 'pago', label: 'Recebido' }, { value: 'pendente', label: 'A conferir' }] : [{ value: 'pago', label: 'Já paguei' }, { value: 'pendente', label: 'A pagar' }]} />
         </Card>
       )}
 
@@ -139,7 +178,8 @@ export default function NovoLancamento() {
         )}
       </Card>
 
-      <Button title={type === 'entrada' ? 'Salvar entrada' : 'Salvar saída'} color={type === 'entrada' ? color : C.danger} loading={busy} onPress={save} />
+      <Button title={editing ? 'Salvar alterações' : type === 'entrada' ? 'Salvar entrada' : 'Salvar saída'} color={type === 'entrada' ? color : C.danger} loading={busy} onPress={save} />
+      {editing && <DeleteButton what="lançamento" fallback="/financeiro" onDelete={async () => supabase.from('finance_entries').delete().eq('id', initial.id!)} />}
     </Screen>
   );
 }
