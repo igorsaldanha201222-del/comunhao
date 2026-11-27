@@ -16,7 +16,7 @@ if (isWeb) {
   // O Android/Chrome avisa quando dá para instalar; guardamos para o botão "Instalar app".
   window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferred = e as InstallPrompt; notify(); });
   window.addEventListener('appinstalled', () => { deferred = null; notify(); });
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/app/sw.js', { scope: '/app/' }).catch(() => {});
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/app/sw.js', { scope: '/app' }).catch(() => {});
 }
 
 export const isIOS = () => isWeb && (/iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
@@ -49,7 +49,7 @@ export async function enablePush(churchId: string, userId: string): Promise<stri
   if (!key) return 'Notificações ainda não configuradas.';
   const perm = await Notification.requestPermission();
   if (perm !== 'granted') return 'Você não permitiu as notificações. Dá para liberar depois nos ajustes do celular.';
-  const reg = await navigator.serviceWorker.register('/app/sw.js', { scope: '/app/' });
+  const reg = await navigator.serviceWorker.register('/app/sw.js', { scope: '/app' });
   await navigator.serviceWorker.ready;
   const sub = (await reg.pushManager.getSubscription()) ??
     (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(key) }));
@@ -72,7 +72,7 @@ export function useWebApp() {
     const l = () => force((n) => n + 1);
     listeners.add(l);
     if (granted()) {
-      navigator.serviceWorker.getRegistration('/app/')
+      navigator.serviceWorker.getRegistration('/app')
         .then((r) => r?.pushManager.getSubscription())
         .then((s) => setSubscribed(!!s))
         .catch(() => setSubscribed(false));

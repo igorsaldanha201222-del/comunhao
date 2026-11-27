@@ -108,7 +108,7 @@ export async function createNotification(_: ActionResult, f: FormData): Promise<
   if (error) return { error: error.message };
   try {
     const r = await dispatchNotification(c.supabase, data.id, {
-      title: req(f, "title"), body: req(f, "body"), url: s(f, "link_url") ?? "/app/",
+      title: req(f, "title"), body: req(f, "body"), url: s(f, "link_url") ?? "/app",
     });
     return done(c, "/notificacoes", r.total ? `Enviada para ${r.sent} de ${r.total} aparelho(s).` : "Salva. Ainda nenhum celular ativou as notificações no app.");
   } catch (e) {

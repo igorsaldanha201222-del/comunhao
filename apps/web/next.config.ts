@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
-      { source: "/app/sw.js", headers: [{ key: "Cache-Control", value: "no-cache" }, { key: "Service-Worker-Allowed", value: "/app/" }] },
+      { source: "/app/sw.js", headers: [{ key: "Cache-Control", value: "no-cache" }, { key: "Service-Worker-Allowed", value: "/app" }] },
       { source: "/app/manifest.webmanifest", headers: [{ key: "Content-Type", value: "application/manifest+json" }] },
     ];
   },
