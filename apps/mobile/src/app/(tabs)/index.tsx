@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import {
   ArrowRight, Baby, Clock, BookOpen, Calendar, ChevronRight, ClipboardCheck, HeartHandshake, MapPin, Megaphone, Play,
-  Contact, Layers, Sun, Sunrise, TrendingUp, Users, Video,
+  Contact, Layers, Settings, Sun, Sunrise, TrendingUp, Users, Video,
 } from 'lucide-react-native';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -156,6 +156,17 @@ export default function Inicio() {
               </Card>
             </Pressable>
           </View>}
+          <Pressable onPress={() => router.push('/gestao')} accessibilityRole="button"
+            style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.dark, borderRadius: 18, padding: 16, opacity: pressed ? 0.9 : 1 })}>
+            <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center' }}>
+              <Settings size={20} color="#fff" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontFamily: F.bold, fontSize: 16, color: '#fff' }}>Administração</Text>
+              <Text style={{ fontFamily: F.regular, fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>Tudo da igreja: pessoas, cultos, conteúdo, finanças</Text>
+            </View>
+            <ChevronRight size={20} color="#fff" />
+          </Pressable>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
             {me.canFinance && <QuickAction label="Financeiro" icon={TrendingUp} color={color} solid onPress={() => router.push('/financeiro')} />}
             {me.canFinance && <QuickAction label="Lançar" icon={HeartHandshake} color={color} onPress={() => router.push('/financeiro/novo')} />}

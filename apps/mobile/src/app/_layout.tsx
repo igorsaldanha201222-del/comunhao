@@ -74,6 +74,7 @@ function RootNavigator() {
         <Stack.Screen name="devocional/index" options={{ headerShown: true, title: 'Devocional', headerBackTitle: 'Voltar' }} />
         <Stack.Screen name="devocional/[id]" options={{ headerShown: true, title: 'Devocional', headerBackTitle: 'Voltar' }} />
         <Stack.Screen name="aovivo" options={{ headerShown: true, title: 'Ao vivo e pregações', headerBackTitle: 'Voltar' }} />
+        <Stack.Screen name="gestao" />
         <Stack.Screen name="ponto" options={{ headerShown: true, title: 'Meu ponto', headerBackTitle: 'Voltar' }} />
         <Stack.Screen name="equipe" options={{ headerShown: true, title: 'Equipe', headerBackTitle: 'Voltar' }} />
         <Stack.Screen name="visitantes" options={{ headerShown: true, title: 'Visitantes', headerBackTitle: 'Voltar' }} />
