@@ -70,9 +70,9 @@ export default async function ChurchSite({ params }: PageProps<"/i/[slug]">) {
             {nav.map(([href, label]) => <a key={href} href={href} className="transition hover:text-accent">{label}</a>)}
             {SITE_LINKS.map(([href, label]) => <Link key={href} href={`/i/${slug}${href}`} className="transition hover:text-accent">{label.slice(label.indexOf(" ") + 1)}</Link>)}
           </nav>
-          <Link href={`/i/${slug}/participar`} className="shrink-0 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent sm:px-5 sm:py-2.5">
-            <span className="sm:hidden">Membro</span><span className="hidden sm:inline">Área do Membro</span>
-          </Link>
+          <a href="/app" className="shrink-0 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent sm:px-5 sm:py-2.5">
+            <span className="sm:hidden">Abrir o app</span><span className="hidden sm:inline">Abrir o app da igreja</span>
+          </a>
         </div>
       </header>
 
@@ -92,9 +92,9 @@ export default async function ChurchSite({ params }: PageProps<"/i/[slug]">) {
           <p className={`mt-3 text-xl font-bold ${church.hero_url ? "text-zinc-900 [text-shadow:1px_1px_3px_rgba(255,255,255,0.8)]" : "text-white/90"}`}>
             {church.tagline ?? "Um lugar de fé, esperança e amor."}
           </p>
-          <Link href={`/i/${slug}/membro`} className="mt-6 inline-block rounded-full bg-brand px-7 py-3 text-lg font-bold text-white shadow-lg transition hover:scale-105 hover:bg-accent">
+          <a href={`/app/bem-vindo?c=${slug}`} className="mt-6 inline-block rounded-full bg-brand px-7 py-3 text-lg font-bold text-white shadow-lg transition hover:scale-105 hover:bg-accent">
             🙋 Quero ser membro
-          </Link>
+          </a>
         </div>
       </section>
 
@@ -151,7 +151,7 @@ export default async function ChurchSite({ params }: PageProps<"/i/[slug]">) {
           ))}
         </ol>
         <div className="mt-8 text-center">
-          <Link href={`/i/${slug}/membro`} className="inline-block rounded-full bg-brand px-7 py-3 font-bold text-white transition hover:bg-accent">Começar minha jornada →</Link>
+          <a href={`/app/bem-vindo?c=${slug}`} className="inline-block rounded-full bg-brand px-7 py-3 font-bold text-white transition hover:bg-accent">Começar minha jornada →</a>
         </div>
       </section>
 

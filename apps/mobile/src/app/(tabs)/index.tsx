@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import {
   ArrowRight, Baby, Clock, BookOpen, Calendar, ChevronRight, ClipboardCheck, HeartHandshake, MapPin, Megaphone, Play,
-  Sunrise, TrendingUp, Users, Video,
+  Contact, Layers, Sun, Sunrise, TrendingUp, Users, Video,
 } from 'lucide-react-native';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,7 +12,7 @@ import { AppInstallCard } from '@/components/app-install';
 import { Button, C, Card, F, Muted, Screen, Section, Tile, fmtDateTime } from '@/components/ui';
 import { todayService } from '@/lib/checkin';
 import { loadJourney, stepsDone } from '@/lib/journey';
-import { roleLabel, siteBase, useMe } from '@/lib/role';
+import { roleLabel, useMe } from '@/lib/role';
 import { useChurch } from '@/lib/session';
 import { supabase } from '@/lib/supabase';
 import { useData } from '@/lib/use-data';
@@ -43,7 +43,6 @@ export default function Inicio() {
   const { church, color, user, personId } = useChurch();
   const me = useMe();
   const insets = useSafeAreaInsets();
-  const site = `${siteBase()}/i/${church.slug}`;
 
   const { data, refresh, refreshing } = useData<Home>(async () => {
     const [c, s, n, e, d] = await Promise.all([
@@ -150,17 +149,23 @@ export default function Inicio() {
                 {stats?.noContact ? <Text style={{ fontFamily: F.semibold, fontSize: 12, color: C.accentText }}>{stats.noContact} sem contato</Text> : null}
               </Card>
             </Pressable>
-            <Card style={{ flex: 1, gap: 4 }}>
-              <Text style={{ fontFamily: F.semibold, fontSize: 12, color: C.muted }}>Na trilha de membro</Text>
-              <Text style={{ fontFamily: F.extrabold, fontSize: 28, color: C.text }}>{stats?.trail ?? '–'}</Text>
-            </Card>
+            <Pressable onPress={() => router.push('/pessoas')} accessibilityRole="button" style={{ flex: 1 }}>
+              <Card style={{ flex: 1, gap: 4 }}>
+                <Text style={{ fontFamily: F.semibold, fontSize: 12, color: C.muted }}>Na trilha de membro</Text>
+                <Text style={{ fontFamily: F.extrabold, fontSize: 28, color: C.text }}>{stats?.trail ?? '–'}</Text>
+              </Card>
+            </Pressable>
           </View>}
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
             {me.canFinance && <QuickAction label="Financeiro" icon={TrendingUp} color={color} solid onPress={() => router.push('/financeiro')} />}
             {me.canFinance && <QuickAction label="Lançar" icon={HeartHandshake} color={color} onPress={() => router.push('/financeiro/novo')} />}
             {me.isStaff && <QuickAction label="Abrir chamada" icon={ClipboardCheck} color={color} solid={!me.canFinance} onPress={() => router.push('/chamada')} />}
             {me.isStaff && <QuickAction label="Enviar aviso" icon={Megaphone} color={color} onPress={() => router.push('/aviso')} />}
-            <QuickAction label="Equipe" icon={Users} color={color} onPress={() => router.push('/equipe')} />
+            {me.isStaff && <QuickAction label="Pessoas" icon={Contact} color={color} onPress={() => router.push('/pessoas')} />}
+            {me.isStaff && <QuickAction label="Ministérios" icon={Layers} color={color} onPress={() => router.push('/ministerios')} />}
+            {me.isStaff && <QuickAction label="Visitantes" icon={Users} color={color} onPress={() => router.push('/visitantes')} />}
+            {me.isStaff && <QuickAction label="Energia solar" icon={Sun} color={color} onPress={() => router.push('/energia')} />}
+            <QuickAction label="Equipe" icon={Clock} color={color} onPress={() => router.push('/equipe')} />
           </View>
         </Section>
       )}
@@ -189,9 +194,9 @@ export default function Inicio() {
       )}
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', rowGap: 10, marginTop: 6 }}>
-        <Tile icon={BookOpen} label="Bíblia" color={color} onPress={() => open(`${site}/biblia`)} />
-        <Tile icon={Video} label="Ao vivo" color={color} onPress={() => open(`${site}/aovivo`)} />
-        <Tile icon={Sunrise} label="Devocional" color={color} onPress={() => open(`${site}/devocional`)} />
+        <Tile icon={BookOpen} label="Bíblia" color={color} onPress={() => router.push('/biblia')} />
+        <Tile icon={Video} label="Ao vivo" color={color} onPress={() => router.push('/aovivo')} />
+        <Tile icon={Sunrise} label="Devocional" color={color} onPress={() => router.push('/devocional')} />
         <Tile icon={Baby} label="Kids" color={color} onPress={() => router.push('/kids')} />
         <Tile icon={Calendar} label="Agenda" color={color} onPress={() => router.push('/agenda')} />
         <Tile icon={Users} label="Escalas" color={color} onPress={() => router.push('/escalas')} />
@@ -214,14 +219,14 @@ export default function Inicio() {
       )}
 
       {devo && (
-        <Section title="Devocional de hoje" action="Ver todos" onAction={() => open(`${site}/devocional`)}>
+        <Section title="Devocional de hoje" action="Ver todos" onAction={() => router.push('/devocional')}>
           <Card>
             {devo.verse_ref ? (
               <Text style={{ alignSelf: 'flex-start', fontFamily: F.bold, fontSize: 12, color, backgroundColor: C.tint, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, overflow: 'hidden' }}>{devo.verse_ref}</Text>
             ) : null}
             <Text style={{ fontFamily: F.bold, fontSize: 18, lineHeight: 24, color: C.text }}>{devo.title}</Text>
             <Text style={{ fontFamily: F.regular, fontSize: 14, lineHeight: 22, color: C.body }} numberOfLines={3}>{devo.body}</Text>
-            <Pressable onPress={() => open(`${site}/devocional/${devo.id}`)} accessibilityRole="link" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4 }}>
+            <Pressable onPress={() => router.push({ pathname: '/devocional/[id]', params: { id: devo.id } })} accessibilityRole="link" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4 }}>
               <Text style={{ fontFamily: F.bold, fontSize: 14, color }}>Ler devocional</Text>
               <ArrowRight size={16} color={color} strokeWidth={2} />
             </Pressable>
@@ -253,7 +258,7 @@ export default function Inicio() {
 
       {sermon && (
         <Section title="Última pregação">
-          <Pressable onPress={() => { const u = sermon.video_url ?? sermon.audio_url; if (u) open(u); }} accessibilityRole="button"
+          <Pressable onPress={() => { if (sermon.video_url) router.push('/aovivo'); else if (sermon.audio_url) open(sermon.audio_url); }} accessibilityRole="button"
             style={{ backgroundColor: C.card, borderRadius: 20, borderWidth: 1, borderColor: C.border, padding: 12, flexDirection: 'row', gap: 14, alignItems: 'center' }}>
             <View style={{ width: 88, height: 88, borderRadius: 14, backgroundColor: C.text, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
               {ytId(sermon.video_url) ? <Image source={`https://i.ytimg.com/vi/${ytId(sermon.video_url)}/hqdefault.jpg`} style={{ position: 'absolute', inset: 0 }} contentFit="cover" /> : null}

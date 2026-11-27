@@ -64,12 +64,10 @@ export default async function Participar({ params }: PageProps<"/i/[slug]/partic
       {user && m && (
         <div className="card space-y-3 text-sm">
           <p>✅ Você faz parte da <strong>{church.name}</strong> como <strong>{STATUS_LABEL[m.role]}</strong>.</p>
-          {hasPanel ? (
-            <Link href={`/painel/${slug}`} className="btn-primary block w-full text-center">Abrir o painel</Link>
-          ) : (
+          <a href="/app" className="btn-primary block w-full text-center">Abrir o app</a>
+          {!hasPanel && (
             <p className="text-zinc-600">
-              Avise o pastor que você se cadastrou. Ele libera seu acesso em <em>Configurações → Equipe</em>
-              (líder, tesoureiro ou manutenção). Pelo app do celular você já pode ver a agenda, as escalas e contribuir.
+              Se você vai servir na equipe (líder, tesoureiro ou manutenção), avise o pastor que você se cadastrou para ele liberar o seu acesso.
             </p>
           )}
           <Link href={`/i/${slug}`} className="block text-center text-zinc-500 underline">Ver o site da igreja</Link>

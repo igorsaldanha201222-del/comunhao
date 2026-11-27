@@ -33,7 +33,7 @@ export async function SiteShell({ slug, active, children }: { slug: string; acti
               : <span aria-hidden>⛪</span>}
             <span className="truncate">{church.name}</span>
           </Link>
-          <Link href={`/i/${slug}/participar`} className="shrink-0 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-accent">Membro</Link>
+          <a href="/app" className="shrink-0 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-accent">Abrir o app</a>
         </div>
         <nav className="mx-auto flex max-w-5xl gap-1 overflow-x-auto px-3 pb-2 text-sm font-semibold">
           {SITE_LINKS.map(([href, label]) => (

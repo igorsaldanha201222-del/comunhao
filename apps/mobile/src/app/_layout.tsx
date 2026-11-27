@@ -63,6 +63,17 @@ function RootNavigator() {
         <Stack.Screen name="escala/[id]" options={{ headerShown: true, title: 'Escala', headerBackTitle: 'Voltar' }} />
         <Stack.Screen name="presenca" options={{ headerShown: true, title: 'Presença', headerBackTitle: 'Voltar' }} />
         <Stack.Screen name="contribuicoes" options={{ headerShown: true, title: 'Minhas contribuições', headerBackTitle: 'Voltar' }} />
+        <Stack.Screen name="pessoas/index" options={{ headerShown: true, title: 'Pessoas', headerBackTitle: 'Voltar' }} />
+        <Stack.Screen name="pessoas/nova" options={{ headerShown: true, title: 'Nova pessoa', headerBackTitle: 'Voltar', presentation: 'modal' }} />
+        <Stack.Screen name="pessoas/[id]" options={{ headerShown: true, title: 'Pessoa', headerBackTitle: 'Voltar' }} />
+        <Stack.Screen name="ministerios/index" options={{ headerShown: true, title: 'Ministérios', headerBackTitle: 'Voltar' }} />
+        <Stack.Screen name="ministerios/[id]" options={{ headerShown: true, title: 'Ministério', headerBackTitle: 'Voltar' }} />
+        <Stack.Screen name="energia" options={{ headerShown: true, title: 'Energia solar', headerBackTitle: 'Voltar' }} />
+        <Stack.Screen name="biblia/index" options={{ headerShown: true, title: 'Bíblia', headerBackTitle: 'Voltar' }} />
+        <Stack.Screen name="biblia/[livro]" options={{ headerShown: true, title: 'Bíblia', headerBackTitle: 'Voltar' }} />
+        <Stack.Screen name="devocional/index" options={{ headerShown: true, title: 'Devocional', headerBackTitle: 'Voltar' }} />
+        <Stack.Screen name="devocional/[id]" options={{ headerShown: true, title: 'Devocional', headerBackTitle: 'Voltar' }} />
+        <Stack.Screen name="aovivo" options={{ headerShown: true, title: 'Ao vivo e pregações', headerBackTitle: 'Voltar' }} />
         <Stack.Screen name="ponto" options={{ headerShown: true, title: 'Meu ponto', headerBackTitle: 'Voltar' }} />
         <Stack.Screen name="equipe" options={{ headerShown: true, title: 'Equipe', headerBackTitle: 'Voltar' }} />
         <Stack.Screen name="visitantes" options={{ headerShown: true, title: 'Visitantes', headerBackTitle: 'Voltar' }} />

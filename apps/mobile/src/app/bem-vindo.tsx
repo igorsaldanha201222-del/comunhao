@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { BookOpen, CircleCheck, HandHeart, Video } from 'lucide-react-native';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -24,6 +24,13 @@ export default function BemVindo() {
     const { data } = await supabase.rpc('church_welcome', { p_slug: slug });
     return ((data ?? []) as Welcome[])[0] ?? null;
   }, null as Welcome | null, `welcome:${slug}`);
+
+  // Quem já é da igreja (ex.: membro clicando em "Quero ser membro" no site) vai direto para o app.
+  useEffect(() => {
+    if (!session || !church) return;
+    supabase.from('memberships').select('church_id').eq('user_id', session.user.id).eq('church_id', church.id).maybeSingle()
+      .then(({ data }) => { if (data) { selectChurch(church); router.replace('/'); } });
+  }, [session, church, selectChurch]);
 
   const metaName = (session?.user.user_metadata?.full_name as string | undefined) ?? '';
   const [name, setName] = useState('');
