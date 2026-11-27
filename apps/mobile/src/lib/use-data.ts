@@ -24,5 +24,5 @@ export function useData<T>(fetcher: () => Promise<T>, initial: T, key: string) {
     try { await reload(); } finally { setRefreshing(false); }
   }, [reload]);
 
-  return { data, reload, refresh, refreshing };
+  return { data, setData, reload, refresh, refreshing };
 }

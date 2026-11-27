@@ -80,7 +80,8 @@ export default function Inicio() {
   }, null, `stats:${church.id}:${me.isStaff}`);
 
   const tj = trail.journey;
-  const showJourney = !trail.isMember && (me.isVisitor || !!tj || me.role === 'member');
+  // Trilha de membro: só para quem ainda não serve na igreja (liderança e tesouraria já são da casa).
+  const showJourney = !trail.isMember && !me.isStaff && !me.canFinance && (me.isVisitor || !!tj || me.role === 'member');
   const done = tj ? stepsDone(tj) : 0;
 
   const header = (
@@ -136,8 +137,8 @@ export default function Inicio() {
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
             {me.canFinance && <QuickAction label="Financeiro" icon={TrendingUp} color={color} solid onPress={() => router.push('/financeiro')} />}
             {me.canFinance && <QuickAction label="Lançar" icon={HeartHandshake} color={color} onPress={() => router.push('/financeiro/novo')} />}
-            {me.isStaff && <QuickAction label="Abrir chamada" icon={ClipboardCheck} color={color} solid={!me.canFinance} onPress={() => open(`${siteBase()}/painel/${church.slug}/presenca`)} />}
-            {me.isStaff && <QuickAction label="Enviar aviso" icon={Megaphone} color={color} onPress={() => open(`${siteBase()}/painel/${church.slug}/notificacoes`)} />}
+            {me.isStaff && <QuickAction label="Abrir chamada" icon={ClipboardCheck} color={color} solid={!me.canFinance} onPress={() => router.push('/chamada')} />}
+            {me.isStaff && <QuickAction label="Enviar aviso" icon={Megaphone} color={color} onPress={() => router.push('/aviso')} />}
           </View>
         </Section>
       )}

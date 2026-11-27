@@ -28,7 +28,7 @@ let html = readFileSync(index, "utf8")
   .replace('<html lang="en">', '<html lang="pt-BR">')
   .replace("</head>", [
     '<link rel="manifest" href="/app/manifest.webmanifest">',
-    '<meta name="theme-color" content="#4f46e5">',
+    '<meta name="theme-color" content="#007a3d">',
     '<link rel="apple-touch-icon" href="/app/apple-touch-icon.png">',
     '<meta name="apple-mobile-web-app-capable" content="yes">',
     '<meta name="mobile-web-app-capable" content="yes">',
