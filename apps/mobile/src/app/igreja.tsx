@@ -14,8 +14,13 @@ export default function EscolherIgreja() {
 
   useEffect(() => {
     supabase.from('memberships').select('churches(id, slug, name, logo_url, primary_color)').eq('user_id', session!.user.id)
-      .then(({ data }) => setMine((data ?? []).map((m) => m.churches as unknown as Church).filter(Boolean)));
-  }, [session]);
+      .then(({ data }) => {
+        const list = (data ?? []).map((m) => m.churches as unknown as Church).filter(Boolean);
+        // Uma igreja só: entra direto, sem precisar tocar no nome.
+        if (list.length === 1) selectChurch(list[0]);
+        else setMine(list);
+      });
+  }, [session, selectChurch]);
 
   async function join() {
     setBusy(true);
